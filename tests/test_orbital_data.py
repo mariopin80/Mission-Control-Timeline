@@ -11,6 +11,7 @@ from mission_pass_timeline.orbital_data import (
     OrbitalSourceError,
     catalogs_to_download,
     decode_celestrak_response,
+    decode_satnogs_response,
     download_catalogs,
     parse_catalog_numbers,
     satellite_from_omm,
@@ -106,17 +107,35 @@ class OmmDataTests(unittest.TestCase):
         satellites = satellites_from_cache(document, [5, 6, 7])
         self.assertEqual([item.catalog_number for item in satellites], [5, 6])
 
-    def test_source_error_stops_remaining_downloads(self):
-        calls: list[int] = []
+    def test_source_error_switches_remaining_downloads_to_fallback(self):
+        primary_calls: list[int] = []
+        fallback_calls: list[int] = []
 
-        def downloader(catalog: int) -> dict[str, str]:
-            calls.append(catalog)
+        def primary(catalog: int) -> dict[str, str]:
+            primary_calls.append(catalog)
             raise OrbitalSourceError("servidor indisponível")
 
-        downloaded, errors = download_catalogs([5, 6, 7], downloader)
-        self.assertEqual(downloaded, {})
-        self.assertEqual(calls, [5])
-        self.assertEqual(errors, ["servidor indisponível"])
+        def fallback(catalog: int) -> dict[str, str]:
+            fallback_calls.append(catalog)
+            return omm_record(catalog)
+
+        downloaded, errors = download_catalogs([5, 6, 7], primary, fallback)
+        self.assertEqual(sorted(downloaded), [5, 6, 7])
+        self.assertEqual(primary_calls, [5])
+        self.assertEqual(fallback_calls, [5, 6, 7])
+        self.assertEqual(errors, [])
+
+    def test_decodes_satnogs_tle_as_omm_cache_record(self):
+        record = {
+            "tle0": "0 ISS (ZARYA)",
+            "tle1": "1 25544U 98067A   26198.57280181  .00003563  00000-0  72724-4 0  9991",
+            "tle2": "2 25544  51.6316 149.7201 0006795 306.9083  53.1282 15.49033131576463",
+            "norad_cat_id": 25544,
+        }
+        fields = decode_satnogs_response(json.dumps([record]).encode(), 25544)
+        self.assertEqual(fields["NORAD_CAT_ID"], "25544")
+        self.assertEqual(fields["OBJECT_NAME"], "ISS (ZARYA)")
+        self.assertEqual(fields["_DATA_SOURCE"], "SATNOGS")
 
 
 if __name__ == "__main__":

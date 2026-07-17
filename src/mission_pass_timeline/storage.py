@@ -113,7 +113,7 @@ class SettingsStore:
     ) -> None:
         document = {
             "schema_version": 1,
-            "source": "CelesTrak GP/OMM JSON",
+            "source": "CelesTrak/SatNOGS OMM cache",
             "updated_at_utc": updated_at.isoformat(),
             "satellites": records,
         }

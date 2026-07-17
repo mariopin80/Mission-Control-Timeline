@@ -1,10 +1,10 @@
-# Registro de verificação — v0.5.0
+# Registro de verificação — v0.5.1
 
 Data: 17/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de trinta e nove testes cobre:
+O conjunto de quarenta testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -40,9 +40,10 @@ O conjunto de trinta e nove testes cobre:
 - reutilização de cache recente sem download duplicado;
 - download apenas dos catálogos ausentes em cache recente;
 - atualização completa quando o cache ultrapassa o intervalo mínimo.
-- interrupção imediata das consultas após erro da fonte remota.
+- troca imediata para a fonte de contingência após erro da fonte principal;
+- conversão da resposta TLE do SatNOGS para o cache OMM.
 
-Resultado: **39/39 aprovados**.
+Resultado: **40/40 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
 Python 3.10 e, adicionalmente, toda a suíte foi executada em **Python 3.10.20**.

@@ -4,7 +4,7 @@ Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que os satélites de uma lista de números
 NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.5.0
+## Versão 0.5.1
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
 - marcador vermelho do horário atual após apenas 30 minutos de histórico;
@@ -24,6 +24,16 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - fechamento automático do cartão ao clicar fora de uma passagem;
 - aviso visual de dados orbitais antigos;
 - detalhes da passagem ao clicar em uma faixa.
+
+### Correções da versão 0.5.1
+
+- SatNOGS usado automaticamente como contingência quando o CelesTrak falha;
+- TLE obtido do SatNOGS convertido para o mesmo cache interno OMM;
+- após uma falha do CelesTrak, os demais catálogos da rodada usam diretamente
+  a contingência, sem insistir no servidor indisponível;
+- mensagem de erro agora apresenta a causa técnica real em vez de afirmar
+  genericamente que não há internet;
+- identificação da fonte efetivamente usada na barra de estado.
 
 ### Alterações da versão 0.4.2
 
@@ -88,7 +98,8 @@ O projeto inclui `example_satellites.txt` como modelo editável.
 
 ## Observações de engenharia
 
-- A fonte automática padrão é o serviço GP do CelesTrak.
+- A fonte automática padrão é o serviço GP do CelesTrak, com SatNOGS como
+  contingência para catálogos disponíveis em TLE.
 - Na primeira execução de uma lista nova, a internet é necessária para obter os
   dados que ainda não existirem no cache.
 - A máscara padrão é 10°, mas deve refletir obstruções, horizonte e desempenho

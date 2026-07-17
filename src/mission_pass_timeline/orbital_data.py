@@ -9,11 +9,13 @@ from urllib.request import Request, urlopen
 
 from sgp4 import omm
 from sgp4.api import Satrec
+from sgp4.exporter import export_omm
 
 from .models import Satellite
 
 UTC = timezone.utc
 CELESTRAK_GP_URL = "https://celestrak.org/NORAD/elements/gp.php"
+SATNOGS_TLE_URL = "https://db.satnogs.org/api/tle/"
 CATALOG_PATTERN = re.compile(r"^[0-9]{1,9}$")
 
 
@@ -117,6 +119,7 @@ def decode_celestrak_response(payload: bytes, expected_catalog: int) -> dict[str
     ):
         raise OrbitalDataError(f"Nenhum dado orbital para o NORAD {expected_catalog}.")
     fields = {str(key): str(value) for key, value in values[0].items()}
+    fields["_DATA_SOURCE"] = "CELESTRAK"
     satellite = satellite_from_omm(fields)
     if satellite.catalog_number != expected_catalog:
         raise OrbitalDataError(
@@ -141,20 +144,74 @@ def download_catalog(
     return decode_celestrak_response(payload, catalog)
 
 
+def decode_satnogs_response(payload: bytes, expected_catalog: int) -> dict[str, str]:
+    try:
+        values = json.loads(payload.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise OrbitalDataError("O SatNOGS retornou uma resposta inválida.") from exc
+    if not isinstance(values, list) or not values or not isinstance(values[0], dict):
+        raise OrbitalDataError(
+            f"Nenhum dado no SatNOGS para o NORAD {expected_catalog}."
+        )
+    record = values[0]
+    try:
+        catalog = int(record["norad_cat_id"])
+        line1 = str(record["tle1"])
+        line2 = str(record["tle2"])
+        name = str(record.get("tle0", f"SAT {catalog}")).removeprefix("0 ").strip()
+        satrec = Satrec.twoline2rv(line1, line2)
+        fields = {
+            str(key): str(value) for key, value in export_omm(satrec, name).items()
+        }
+    except (KeyError, TypeError, ValueError) as exc:
+        raise OrbitalDataError(f"Registro SatNOGS inválido: {exc}") from exc
+    if catalog != expected_catalog or int(fields["NORAD_CAT_ID"]) != expected_catalog:
+        raise OrbitalDataError(f"O SatNOGS retornou {catalog} para {expected_catalog}.")
+    fields["_DATA_SOURCE"] = "SATNOGS"
+    satellite_from_omm(fields)
+    return fields
+
+
+def download_satnogs_catalog(
+    catalog: int,
+    *,
+    timeout: float = 15.0,
+    opener: Callable[..., object] = urlopen,
+) -> dict[str, str]:
+    url = f"{SATNOGS_TLE_URL}?norad_cat_id={catalog}"
+    request = Request(url, headers={"User-Agent": "MissionControlTimeline/0.5"})
+    try:
+        with opener(request, timeout=timeout) as response:  # type: ignore[attr-defined]
+            payload = response.read()
+    except (HTTPError, URLError, OSError, TimeoutError) as exc:
+        raise OrbitalSourceError(f"Falha ao consultar SatNOGS: {exc}") from exc
+    return decode_satnogs_response(payload, catalog)
+
+
 def download_catalogs(
     catalogs: Iterable[int],
-    downloader: Callable[[int], dict[str, str]] = download_catalog,
+    primary: Callable[[int], dict[str, str]] = download_catalog,
+    fallback: Callable[[int], dict[str, str]] = download_satnogs_catalog,
 ) -> tuple[dict[int, dict[str, str]], list[str]]:
-    """Download sequentially and stop immediately if the source is unavailable."""
+    """Use CelesTrak first and switch to SatNOGS after a source failure."""
 
     downloaded: dict[int, dict[str, str]] = {}
     errors: list[str] = []
+    primary_available = True
     for catalog in catalogs:
         try:
+            downloader = primary if primary_available else fallback
             downloaded[catalog] = downloader(catalog)
         except OrbitalSourceError as exc:
-            errors.append(str(exc))
-            break
+            if primary_available:
+                primary_available = False
+                try:
+                    downloaded[catalog] = fallback(catalog)
+                except OrbitalDataError as fallback_exc:
+                    errors.append(f"{exc}; {fallback_exc}")
+            else:
+                errors.append(str(exc))
+                break
         except OrbitalDataError as exc:
             errors.append(str(exc))
     return downloaded, errors

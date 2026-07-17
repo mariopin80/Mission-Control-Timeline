@@ -490,9 +490,18 @@ class MissionPassApp:
                 if satellites:
                     self.satellites = satellites
                     self._live_propagators.clear()
+                    sources = {
+                        record.get("_DATA_SOURCE", "DADOS ORBITAIS")
+                        for record in downloaded.values()
+                    }
+                    source_name = (
+                        next(iter(sources))
+                        if len(sources) == 1
+                        else "CELESTRAK/SATNOGS"
+                    )
                     if errors:
                         source = (
-                            "CELESTRAK PARCIAL"
+                            f"{source_name} PARCIAL"
                             if downloaded
                             else "CACHE LOCAL • OFFLINE"
                         )
@@ -501,16 +510,17 @@ class MissionPassApp:
                         )
                     else:
                         self._orbital_status = (
-                            f"CELESTRAK {attempted_at.astimezone():%d/%m %H:%M}"
+                            f"{source_name} {attempted_at.astimezone():%d/%m %H:%M}"
                         )
                     self._refresh_labels()
                     self.calculate()
                 else:
-                    self._orbital_status = "SEM INTERNET E SEM CACHE LOCAL"
+                    detail = errors[0] if errors else "Nenhuma fonte retornou dados."
+                    self._orbital_status = "FONTES ORBITAIS INDISPONÍVEIS"
                     self._refresh_labels()
                     self.timeline.show_message(
                         "Dados orbitais indisponíveis",
-                        "Verifique a internet. Nenhum cache válido foi encontrado.",
+                        f"{detail}\nNenhum cache válido foi encontrado.",
                     )
         except queue.Empty:
             pass
