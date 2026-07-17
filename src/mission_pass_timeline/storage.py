@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import sys
+from datetime import datetime
 from pathlib import Path
 
 from .models import Station
@@ -17,14 +19,26 @@ def application_data_dir() -> Path:
     return path
 
 
+def program_dir() -> Path:
+    """Return the folder containing the executable, or the project in source mode."""
+
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[2]
+
+
 class SettingsStore:
     VALID_TIMELINE_HOURS = (3, 6, 8, 12, 24)
     DEFAULT_TIMELINE_HOURS = 6
 
-    def __init__(self, directory: Path | None = None):
+    def __init__(
+        self, directory: Path | None = None, cache_directory: Path | None = None
+    ):
         self.directory = directory or application_data_dir()
+        self.directory.mkdir(parents=True, exist_ok=True)
         self.config_path = self.directory / "config.json"
-        self.tle_path = self.directory / "satellites.tle"
+        self.catalog_path = self.directory / "satellites.txt"
+        self.cache_path = (cache_directory or program_dir()) / "orbital_cache.json"
 
     def _load_document(self) -> dict[str, object]:
         if not self.config_path.exists():
@@ -76,13 +90,35 @@ class SettingsStore:
         document["timeline_hours"] = hours
         self._save_document(document)
 
-    def load_tle_text(self) -> str | None:
+    def load_catalog_text(self) -> str | None:
         try:
-            return self.tle_path.read_text(encoding="utf-8-sig")
+            return self.catalog_path.read_text(encoding="utf-8-sig")
         except FileNotFoundError:
             return None
 
-    def save_tle_text(self, text: str) -> None:
-        temporary = self.tle_path.with_suffix(".tmp")
+    def save_catalog_text(self, text: str) -> None:
+        temporary = self.catalog_path.with_suffix(".tmp")
         temporary.write_text(text, encoding="utf-8")
-        temporary.replace(self.tle_path)
+        temporary.replace(self.catalog_path)
+
+    def load_orbital_cache(self) -> dict[str, object]:
+        try:
+            document = json.loads(self.cache_path.read_text(encoding="utf-8"))
+        except (FileNotFoundError, OSError, json.JSONDecodeError):
+            return {}
+        return document if isinstance(document, dict) else {}
+
+    def save_orbital_cache(
+        self, records: list[dict[str, str]], updated_at: datetime
+    ) -> None:
+        document = {
+            "schema_version": 1,
+            "source": "CelesTrak GP/OMM JSON",
+            "updated_at_utc": updated_at.isoformat(),
+            "satellites": records,
+        }
+        temporary = self.cache_path.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        temporary.replace(self.cache_path)

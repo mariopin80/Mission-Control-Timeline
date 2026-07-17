@@ -50,6 +50,7 @@ class Satellite:
     line2: str
     catalog_number: int
     epoch_utc: datetime
+    omm_fields: dict[str, str] | None = None
 
 
 @dataclass(frozen=True, slots=True)

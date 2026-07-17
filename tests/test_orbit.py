@@ -9,6 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from mission_pass_timeline.models import Station
 from mission_pass_timeline.orbit import Propagator, find_passes
 from mission_pass_timeline.tle import parse_tle
+from test_orbital_data import omm_record
+from mission_pass_timeline.orbital_data import satellite_from_omm
 
 
 VANGUARD = """VANGUARD 1
@@ -59,6 +61,14 @@ class OrbitTests(unittest.TestCase):
             )
             self.assertLess(item.aos_utc, item.max_utc)
             self.assertLess(item.max_utc, item.los_utc)
+
+    def test_omm_satellite_propagates(self):
+        satellite = satellite_from_omm(omm_record())
+        observation = Propagator(satellite, self.station).observe(
+            datetime(2000, 6, 28, 12, tzinfo=UTC)
+        )
+        self.assertTrue(math.isfinite(observation.elevation_deg))
+        self.assertGreater(observation.range_km, 0.0)
 
 
 if __name__ == "__main__":

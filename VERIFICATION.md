@@ -1,10 +1,10 @@
-# Registro de verificação — v0.4.2
+# Registro de verificação — v0.5.0
 
 Data: 17/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de vinte e quatro testes cobre:
+O conjunto de trinta e nove testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -29,8 +29,20 @@ O conjunto de vinte e quatro testes cobre:
 - contador para LOS durante a passagem;
 - tempo decorrido desde LOS após a passagem;
 - rejeição de instante sem fuso horário no contador.
+- leitura de lista com um número NORAD por linha;
+- suporte a catálogos acima de cinco dígitos;
+- rejeição de nomes, linhas TLE e catálogos repetidos na nova lista;
+- validação de resposta OMM/JSON do CelesTrak;
+- rejeição de resposta referente a outro catálogo;
+- reconstrução de satélites na ordem solicitada a partir do cache;
+- separação física entre lista NORAD e cache orbital;
+- propagação SGP4 inicializada por OMM.
+- reutilização de cache recente sem download duplicado;
+- download apenas dos catálogos ausentes em cache recente;
+- atualização completa quando o cache ultrapassa o intervalo mínimo.
+- interrupção imediata das consultas após erro da fonte remota.
 
-Resultado: **24/24 aprovados**.
+Resultado: **39/39 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
 Python 3.10 e, adicionalmente, toda a suíte foi executada em **Python 3.10.20**.

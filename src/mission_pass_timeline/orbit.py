@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from datetime import datetime, timedelta, timezone
 
+from sgp4 import omm
 from sgp4.api import Satrec, jday
 
 from .models import Observation, PassWindow, Satellite, Station
@@ -62,7 +63,11 @@ class Propagator:
     def __init__(self, satellite: Satellite, station: Station):
         self.satellite = satellite
         self.station = station
-        self._satrec = Satrec.twoline2rv(satellite.line1, satellite.line2)
+        if satellite.omm_fields is not None:
+            self._satrec = Satrec()
+            omm.initialize(self._satrec, satellite.omm_fields)
+        else:
+            self._satrec = Satrec.twoline2rv(satellite.line1, satellite.line2)
         self._observer = _observer_ecef(station)
         self._lat = math.radians(station.latitude_deg)
         self._lon = math.radians(station.longitude_deg)

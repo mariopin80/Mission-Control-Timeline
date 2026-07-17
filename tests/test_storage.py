@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 import tempfile
@@ -35,6 +36,23 @@ class SettingsStoreTests(unittest.TestCase):
             store = SettingsStore(Path(directory))
             with self.assertRaises(ValueError):
                 store.save_timeline_hours(5)
+
+    def test_catalog_list_and_orbital_cache_are_separate_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = SettingsStore(root / "settings", root / "program")
+            (root / "program").mkdir()
+            store.save_catalog_text("25544\n")
+            store.save_orbital_cache(
+                [{"NORAD_CAT_ID": "25544"}],
+                datetime(2026, 7, 17, tzinfo=timezone.utc),
+            )
+            self.assertEqual(store.load_catalog_text(), "25544\n")
+            self.assertEqual(
+                store.load_orbital_cache()["satellites"],
+                [{"NORAD_CAT_ID": "25544"}],
+            )
+            self.assertNotEqual(store.catalog_path.parent, store.cache_path.parent)
 
 
 if __name__ == "__main__":

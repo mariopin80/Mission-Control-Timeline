@@ -1,15 +1,17 @@
 # Mission Control — Satellite Pass Timeline
 
 Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
-móvel configurável, os períodos em que satélites descritos por TLE estão acima
-da máscara de elevação de uma estação terrena.
+móvel configurável, os períodos em que os satélites de uma lista de números
+NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.4.2
+## Versão 0.5.0
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
 - marcador vermelho do horário atual após apenas 30 minutos de histórico;
 - grade adaptativa de 15 minutos a 3 horas conforme a escala escolhida;
-- importação de arquivos TLE nos formatos de duas ou três linhas;
+- importação de TXT com um número de catálogo NORAD por linha;
+- atualização automática de dados orbitais pelo CelesTrak ao iniciar e a cada 24 h;
+- cache OMM/JSON separado ao lado do executável para operação sem internet;
 - propagação orbital SGP4;
 - cálculo de AOS, LOS, máxima elevação, azimutes e distância;
 - estação e máscara de elevação configuráveis;
@@ -20,7 +22,7 @@ da máscara de elevação de uma estação terrena.
 - cartão flutuante com AOS, máxima elevação, LOS, azimutes e distância ao
   clicar em uma passagem;
 - fechamento automático do cartão ao clicar fora de uma passagem;
-- aviso visual de TLE antigo;
+- aviso visual de dados orbitais antigos;
 - detalhes da passagem ao clicar em uma faixa.
 
 ### Alterações da versão 0.4.2
@@ -31,11 +33,26 @@ da máscara de elevação de uma estação terrena.
 - elevação, azimute e tempo para LOS exibidos na própria linha do satélite,
   ao lado direito da barra da passagem ativa.
 
+### Alterações da versão 0.5.0
+
+- a lista de entrada contém somente números NORAD;
+- dados orbitais obtidos em OMM/JSON, compatíveis com catálogos acima de 99999;
+- atualização no início do programa, manual pelo botão **Atualizar** e automática
+  após 24 horas de execução;
+- cache com menos de duas horas é reutilizado no início para respeitar a política
+  de uso do CelesTrak e evitar consultas duplicadas;
+- download executado em segundo plano, sem bloquear a interface;
+- `orbital_cache.json` gravado atomicamente na pasta do programa;
+- uso automático do último cache válido quando a internet está indisponível;
+- atualização parcial preserva os registros antigos dos catálogos que falharam.
+- erros HTTP ou indisponibilidade do CelesTrak interrompem imediatamente a rodada,
+  preservando o cache e evitando novas solicitações ao serviço.
+
 ## Executar pelo código-fonte no Windows
 
 1. Instale Python 3.10 ou mais recente marcando a opção **Add Python to PATH**.
 2. Dê duplo clique em `run_windows.bat`.
-3. No programa, use **Importar TLE** e escolha um arquivo `.tle` ou `.txt`.
+3. No programa, use **Lista NORAD** e escolha um arquivo `.txt`.
 4. Abra **Estação** e informe as coordenadas reais da estação.
 
 Na primeira execução, o script cria um ambiente virtual e instala somente a
@@ -52,26 +69,28 @@ dist\MissionPassTimeline.exe
 
 O computador em que o `.exe` for executado não precisará ter Python instalado.
 
-## Formato TLE aceito
+## Formato da lista NORAD
 
-Com nome (três linhas):
-
-```text
-NOME DO SATELITE
-1 NNNNNU ...
-2 NNNNN  ...
-```
-
-Sem nome (duas linhas):
+Informe um número de catálogo por linha. Linhas vazias e comentários iniciados
+por `#` ou `;` são ignorados.
 
 ```text
-1 NNNNNU ...
-2 NNNNN  ...
+25544
+43786
+27607
+# comentários são permitidos
 ```
+
+O arquivo `orbital_cache.json` é independente da lista e fica ao lado do
+executável. Não o edite manualmente. Depois da primeira atualização bem-sucedida,
+o programa pode iniciar e calcular passagens sem conexão com a internet.
+O projeto inclui `example_satellites.txt` como modelo editável.
 
 ## Observações de engenharia
 
-- O TLE deve ser recente. Para operações, atualize a lista regularmente.
+- A fonte automática padrão é o serviço GP do CelesTrak.
+- Na primeira execução de uma lista nova, a internet é necessária para obter os
+  dados que ainda não existirem no cache.
 - A máscara padrão é 10°, mas deve refletir obstruções, horizonte e desempenho
   real da estação.
 - A conversão TEME–ECEF usa GMST e WGS-84, adequada ao planejamento de

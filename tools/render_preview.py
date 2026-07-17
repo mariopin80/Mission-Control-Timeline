@@ -47,8 +47,10 @@ def main() -> None:
         fill="#78909c",
     )
 
-    draw.rounded_rectangle((875, 24, 1035, 78), 8, fill="#1d303d")
-    draw.text((898, 41), "IMPORTAR TLE", font=font(13, True), fill="#e8f1f5")
+    draw.rounded_rectangle((805, 24, 927, 78), 8, fill="#1d303d")
+    draw.text((824, 41), "LISTA NORAD", font=font(12, True), fill="#e8f1f5")
+    draw.rounded_rectangle((938, 24, 1037, 78), 8, fill="#1d303d")
+    draw.text((954, 41), "ATUALIZAR", font=font(11, True), fill="#e8f1f5")
     draw.rounded_rectangle((1048, 24, 1162, 78), 8, fill="#1d303d")
     draw.text((1072, 41), "ESTAÇÃO", font=font(13, True), fill="#e8f1f5")
     draw.text((1182, 43), "JANELA", font=font(11, True), fill="#78909c")
@@ -64,7 +66,7 @@ def main() -> None:
     )
     draw.text(
         (1030, 123),
-        "6 SATÉLITES  •  9 PASSAGENS  •  TLE ATUAL",
+        "6 SATÉLITES  •  9 PASSAGENS  •  CELESTRAK 17/07 16:42",
         font=font(12),
         fill="#78909c",
     )

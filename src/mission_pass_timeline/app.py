@@ -13,16 +13,25 @@ from tkinter import filedialog, messagebox, ttk
 from . import __version__
 from .dialogs import StationDialog
 from .models import PassWindow, Satellite, Station
+from .orbital_data import (
+    CatalogListError,
+    OrbitalDataError,
+    catalogs_to_download,
+    download_catalogs,
+    parse_catalog_numbers,
+    satellites_from_cache,
+)
 from .orbit import Propagator, find_passes
 from .storage import SettingsStore
 from .timeline import PassAnchor, TimelineView
-from .tle import TleFormatError, parse_tle
 
 UTC = timezone.utc
 WINDOW_OPTIONS = (3, 6, 8, 12, 24)
 CALCULATION_REFRESH = timedelta(minutes=5)
 CALCULATION_MARGIN = timedelta(minutes=30)
 HISTORY_DURATION = timedelta(minutes=30)
+ORBITAL_UPDATE_INTERVAL = timedelta(hours=24)
+CELESTRAK_MIN_REFRESH = timedelta(hours=2)
 
 
 def format_countdown(duration: timedelta) -> str:
@@ -91,6 +100,7 @@ class MissionPassApp:
         self.station = self.store.load_station()
         self.timeline_hours = self.store.load_timeline_hours()
         self.satellites: list[Satellite] = []
+        self.catalogs: list[int] = []
         self._pass_results: dict[int, list[PassWindow]] = {}
         self._live_propagators: dict[int, Propagator] = {}
         self._pass_popup: tk.Frame | None = None
@@ -102,6 +112,10 @@ class MissionPassApp:
         self._calculation_id = 0
         self._calculation_in_progress = False
         self._last_calculation_center: datetime | None = None
+        self._orbital_update_in_progress = False
+        self._last_orbital_update_attempt: datetime | None = None
+        self._last_orbital_cache_update: datetime | None = None
+        self._orbital_status = "SEM DADOS ORBITAIS"
         self._result_queue: queue.Queue[
             tuple[
                 int,
@@ -111,12 +125,16 @@ class MissionPassApp:
                 list[str],
             ]
         ] = queue.Queue()
+        self._orbital_result_queue: queue.Queue[
+            tuple[datetime, list[int], dict[int, dict[str, str]], list[str]]
+        ] = queue.Queue()
 
         self._configure_root()
         self._configure_styles()
         self._build_ui()
-        self._load_saved_tle()
+        self._load_saved_catalogs()
         self._poll_calculation_results()
+        self._poll_orbital_results()
         self._tick()
 
     def _configure_root(self) -> None:
@@ -197,7 +215,10 @@ class MissionPassApp:
 
         controls = ttk.Frame(top)
         controls.pack(side="right")
-        ttk.Button(controls, text="Importar TLE", command=self.import_tle).pack(
+        ttk.Button(controls, text="Lista NORAD", command=self.import_catalogs).pack(
+            side="left", padx=4
+        )
+        ttk.Button(controls, text="Atualizar", command=self.update_orbital_data).pack(
             side="left", padx=4
         )
         ttk.Button(controls, text="Estação", command=self.open_station).pack(
@@ -279,7 +300,7 @@ class MissionPassApp:
                 (now_utc - satellite.epoch_utc).total_seconds() > 14 * 86400
                 for satellite in self.satellites
             )
-            warning = f"  •  {old_count} TLE ANTIGO(S)" if old_count else ""
+            warning = f"  •  {old_count} DADO(S) ANTIGO(S)" if old_count else ""
             pass_summary = (
                 f"  •  {self._visible_pass_total} PASSAGENS"
                 if self._display_ready
@@ -293,7 +314,8 @@ class MissionPassApp:
             self.tle_label.configure(
                 text=(
                     f"{len(self.satellites)} SATÉLITES{pass_summary}  •  "
-                    f"TLE {newest:%d/%m/%Y %H:%M} UTC{warning}{error_summary}"
+                    f"{self._orbital_status}  •  ÉPOCA {newest:%d/%m/%Y %H:%M} UTC"
+                    f"{warning}{error_summary}"
                 ),
                 fg=(
                     "#ffb74d"
@@ -302,33 +324,33 @@ class MissionPassApp:
                 ),
             )
         else:
-            self.tle_label.configure(text="NENHUM TLE CARREGADO", fg="#78909c")
+            self.tle_label.configure(text=self._orbital_status, fg="#78909c")
 
-    def _load_saved_tle(self) -> None:
-        text = self.store.load_tle_text()
+    def _load_saved_catalogs(self) -> None:
+        text = self.store.load_catalog_text()
         if text is None:
             self.timeline.show_message(
-                "Importe uma lista de TLE",
-                "Use o botão “Importar TLE” e depois confira as coordenadas da estação.",
+                "Importe uma lista de números NORAD",
+                "Informe um catálogo por linha e depois confira as coordenadas da estação.",
             )
             return
         try:
-            self.satellites = parse_tle(text)
-        except TleFormatError:
+            self.catalogs = parse_catalog_numbers(text)
+        except CatalogListError:
             self.timeline.show_message(
                 "Não foi possível abrir a lista salva",
-                "Importe novamente um arquivo TLE válido.",
+                "Importe novamente um TXT com um número NORAD por linha.",
             )
             return
-        self._refresh_labels()
-        self.calculate()
+        self._load_cached_satellites()
+        self.update_orbital_data()
 
-    def import_tle(self) -> None:
+    def import_catalogs(self) -> None:
         filename = filedialog.askopenfilename(
             parent=self.root,
-            title="Importar lista de TLE",
+            title="Importar lista de números NORAD",
             filetypes=[
-                ("Arquivos TLE", "*.tle *.txt"),
+                ("Lista NORAD", "*.txt"),
                 ("Todos os arquivos", "*.*"),
             ],
         )
@@ -336,23 +358,163 @@ class MissionPassApp:
             return
         try:
             text = Path(filename).read_text(encoding="utf-8-sig")
-            satellites = parse_tle(text)
+            catalogs = parse_catalog_numbers(text)
         except UnicodeDecodeError:
             try:
                 text = Path(filename).read_text(encoding="latin-1")
-                satellites = parse_tle(text)
-            except (OSError, TleFormatError, UnicodeDecodeError) as exc:
+                catalogs = parse_catalog_numbers(text)
+            except (OSError, CatalogListError, UnicodeDecodeError) as exc:
                 messagebox.showerror("Falha ao importar", str(exc), parent=self.root)
                 return
-        except (OSError, TleFormatError) as exc:
+        except (OSError, CatalogListError) as exc:
             messagebox.showerror("Falha ao importar", str(exc), parent=self.root)
             return
 
-        self.satellites = satellites
+        self.catalogs = catalogs
+        self.satellites = []
         self._live_propagators.clear()
-        self.store.save_tle_text(text)
+        self.store.save_catalog_text("\n".join(str(value) for value in catalogs) + "\n")
+        self._load_cached_satellites()
+        self.update_orbital_data()
+
+    def _load_cached_satellites(self) -> None:
+        cache = self.store.load_orbital_cache()
+        try:
+            satellites = satellites_from_cache(cache, self.catalogs)
+        except OrbitalDataError:
+            satellites = []
+        self.satellites = satellites
+        if satellites:
+            timestamp = str(cache.get("updated_at_utc", ""))
+            try:
+                updated_utc = datetime.fromisoformat(timestamp).astimezone(UTC)
+                self._last_orbital_cache_update = updated_utc
+                updated = updated_utc.astimezone()
+                self._orbital_status = f"CACHE LOCAL {updated:%d/%m %H:%M}"
+            except ValueError:
+                self._orbital_status = "CACHE LOCAL"
+            self._refresh_labels()
+            self.calculate()
+        else:
+            self._orbital_status = "AGUARDANDO DADOS ORBITAIS"
+            self._refresh_labels()
+            self.timeline.show_message(
+                "Atualizando dados orbitais…",
+                "Na primeira execução é necessária uma conexão com a internet.",
+            )
+
+    def update_orbital_data(self) -> None:
+        if not self.catalogs or self._orbital_update_in_progress:
+            return
+        cache = self.store.load_orbital_cache()
+        try:
+            cached_satellites = satellites_from_cache(cache, self.catalogs)
+        except OrbitalDataError:
+            cached_satellites = []
+        cached_catalogs = {item.catalog_number for item in cached_satellites}
+        now_utc = datetime.now(UTC)
+        catalogs = catalogs_to_download(
+            self.catalogs,
+            cached_catalogs,
+            self._last_orbital_cache_update,
+            now_utc,
+            CELESTRAK_MIN_REFRESH,
+        )
+        if not catalogs:
+            self._last_orbital_update_attempt = self._last_orbital_cache_update
+            self._orbital_status = f"CACHE ATUAL {self._last_orbital_cache_update.astimezone():%d/%m %H:%M}"
+            self._refresh_labels()
+            return
+
+        self._orbital_update_in_progress = True
+        attempted_at = now_utc
+        self._last_orbital_update_attempt = attempted_at
+        self._orbital_status = "ATUALIZANDO CELESTRAK…"
         self._refresh_labels()
-        self.calculate()
+        catalog_snapshot = list(self.catalogs)
+
+        def worker() -> None:
+            downloaded, errors = download_catalogs(catalogs)
+            self._orbital_result_queue.put(
+                (attempted_at, catalog_snapshot, downloaded, errors)
+            )
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _poll_orbital_results(self) -> None:
+        try:
+            while True:
+                attempted_at, requested_catalogs, downloaded, errors = (
+                    self._orbital_result_queue.get_nowait()
+                )
+                self._orbital_update_in_progress = False
+                if requested_catalogs != self.catalogs:
+                    self.update_orbital_data()
+                    continue
+                cache = self.store.load_orbital_cache()
+                existing = cache.get("satellites", [])
+                merged: dict[int, dict[str, str]] = {}
+                if isinstance(existing, list):
+                    for record in existing:
+                        if not isinstance(record, dict):
+                            continue
+                        try:
+                            catalog = int(record["NORAD_CAT_ID"])
+                        except (KeyError, TypeError, ValueError):
+                            continue
+                        merged[catalog] = {
+                            str(key): str(value) for key, value in record.items()
+                        }
+                merged.update(downloaded)
+                records = [
+                    merged[catalog] for catalog in self.catalogs if catalog in merged
+                ]
+
+                if downloaded:
+                    try:
+                        self.store.save_orbital_cache(records, attempted_at)
+                        self._last_orbital_cache_update = attempted_at
+                    except OSError as exc:
+                        errors.append(f"Não foi possível gravar o cache: {exc}")
+
+                try:
+                    satellites = satellites_from_cache(
+                        {"satellites": records}, self.catalogs
+                    )
+                except OrbitalDataError:
+                    satellites = []
+                missing = len(self.catalogs) - len(satellites)
+                if missing:
+                    errors.append(f"{missing} catálogo(s) sem dados disponíveis.")
+
+                if satellites:
+                    self.satellites = satellites
+                    self._live_propagators.clear()
+                    if errors:
+                        source = (
+                            "CELESTRAK PARCIAL"
+                            if downloaded
+                            else "CACHE LOCAL • OFFLINE"
+                        )
+                        self._orbital_status = (
+                            f"{source} {attempted_at.astimezone():%d/%m %H:%M}"
+                        )
+                    else:
+                        self._orbital_status = (
+                            f"CELESTRAK {attempted_at.astimezone():%d/%m %H:%M}"
+                        )
+                    self._refresh_labels()
+                    self.calculate()
+                else:
+                    self._orbital_status = "SEM INTERNET E SEM CACHE LOCAL"
+                    self._refresh_labels()
+                    self.timeline.show_message(
+                        "Dados orbitais indisponíveis",
+                        "Verifique a internet. Nenhum cache válido foi encontrado.",
+                    )
+        except queue.Empty:
+            pass
+        self.root.after(100, self._poll_orbital_results)
 
     def open_station(self) -> None:
         StationDialog(self.root, self.station, self._save_station)
@@ -673,6 +835,15 @@ class MissionPassApp:
             )
             if needs_refresh:
                 self.calculate(show_loading=not self._display_ready)
+
+        now_utc = now.astimezone(UTC)
+        if (
+            self.catalogs
+            and not self._orbital_update_in_progress
+            and self._last_orbital_update_attempt is not None
+            and now_utc - self._last_orbital_update_attempt >= ORBITAL_UPDATE_INTERVAL
+        ):
+            self.update_orbital_data()
 
         delay = 1000 - now.microsecond // 1000
         self.root.after(max(delay, 100), self._tick)

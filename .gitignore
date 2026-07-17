@@ -7,3 +7,5 @@ dist/
 *.spec
 .coverage
 .ruff_cache/
+orbital_cache.json
+orbital_cache.tmp
