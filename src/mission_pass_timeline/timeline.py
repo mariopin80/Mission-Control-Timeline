@@ -83,6 +83,7 @@ class TimelineView(tk.Frame):
         self.window_start_local: datetime | None = None
         self.window_end_local: datetime | None = None
         self._pass_items: dict[int, PassWindow] = {}
+        self._live_details: dict[int, str] = {}
         self._message: tuple[str, str] | None = None
 
         self.header = tk.Canvas(
@@ -136,6 +137,11 @@ class TimelineView(tk.Frame):
         self.window_start_local = window_start_local
         self.window_end_local = window_end_local
         self.render()
+
+    def set_live_details(self, details: dict[int, str]) -> None:
+        """Store compact live observations rendered beside active pass bars."""
+
+        self._live_details = details
 
     def _window_hours(self) -> float:
         assert self.window_start_local is not None
@@ -294,6 +300,17 @@ class TimelineView(tk.Frame):
                         text=f"{pass_window.max_elevation_deg:.0f}°",
                         fill="#041017",
                         font=("Segoe UI Semibold", 9),
+                    )
+                live_detail = self._live_details.get(satellite.catalog_number)
+                now_local = datetime.now().astimezone(self.window_start_local.tzinfo)
+                if live_detail and local_aos <= now_local < local_los:
+                    self.body.create_text(
+                        x1 + 8,
+                        (y0 + y1) / 2,
+                        text=live_detail,
+                        anchor="w",
+                        fill="#7be3aa",
+                        font=("Consolas", 9, "bold"),
                     )
 
         if self.satellites:

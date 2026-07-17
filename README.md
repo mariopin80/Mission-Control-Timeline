@@ -4,7 +4,7 @@ Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que satélites descritos por TLE estão acima
 da máscara de elevação de uma estação terrena.
 
-## Versão 0.4.1
+## Versão 0.4.2
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
 - marcador vermelho do horário atual após apenas 30 minutos de histórico;
@@ -14,14 +14,22 @@ da máscara de elevação de uma estação terrena.
 - cálculo de AOS, LOS, máxima elevação, azimutes e distância;
 - estação e máscara de elevação configuráveis;
 - atualização contínua da janela e recálculo orbital periódico em segundo plano;
-- painel superior ao vivo para satélites em visada, com elevação, azimute e
-  contagem regressiva para o LOS;
+- dados ao vivo na própria linha do satélite em visada, imediatamente após a
+  barra da passagem, com elevação, azimute e contagem regressiva para o LOS;
 - altura mínima reduzida para uso compacto com poucos satélites;
 - cartão flutuante com AOS, máxima elevação, LOS, azimutes e distância ao
   clicar em uma passagem;
 - fechamento automático do cartão ao clicar fora de uma passagem;
 - aviso visual de TLE antigo;
 - detalhes da passagem ao clicar em uma faixa.
+
+### Alterações da versão 0.4.2
+
+- contador contextual no cartão: `AOS EM`, `LOS EM` ou `LOS HÁ`;
+- atualização do contador do cartão a cada segundo;
+- remoção da faixa superior “Em visada”;
+- elevação, azimute e tempo para LOS exibidos na própria linha do satélite,
+  ao lado direito da barra da passagem ativa.
 
 ## Executar pelo código-fonte no Windows
 

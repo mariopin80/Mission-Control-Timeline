@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 1440, 610
 LABEL_WIDTH = 215
-TOP = 197
+TOP = 155
 ROW_HEIGHT = 56
 NOW_HOUR = 11 + 42 / 60
 WINDOW_START = NOW_HOUR - 0.5
@@ -55,25 +55,15 @@ def main() -> None:
     draw.rounded_rectangle((1260, 24, 1388, 78), 7, fill="#09141d", outline="#29495b")
     draw.text((1295, 41), "6 h    ▼", font=font(13, True), fill="#e8f1f5")
 
-    draw.rectangle((0, 106, WIDTH, 148), fill="#10261f")
-    draw.rectangle((0, 106, 5, 148), fill="#32d583")
-    draw.text((18, 120), "EM VISADA", font=font(12, True), fill="#7be3aa")
+    draw.rectangle((0, 106, WIDTH, TOP), fill="#0c1720")
     draw.text(
-        (145, 120),
-        "ISS (ZARYA)   EL 42.7°   AZ 138.4°   LOS −05:31",
-        font=font(12, True),
-        fill="#e8fff2",
-    )
-
-    draw.rectangle((0, 148, WIDTH, TOP), fill="#0c1720")
-    draw.text(
-        (24, 163),
+        (24, 121),
         "JANELA MÓVEL 6 H  •  17/07/2026 11:12 — 17:12  •  30 MIN DE HISTÓRICO",
         font=font(14, True),
         fill="#e6f0f5",
     )
     draw.text(
-        (1030, 165),
+        (1030, 123),
         "6 SATÉLITES  •  9 PASSAGENS  •  TLE ATUAL",
         font=font(12),
         fill="#78909c",
@@ -133,6 +123,13 @@ def main() -> None:
                     font=font(10, True),
                     fill="#041017",
                 )
+            if name == "ISS (ZARYA)" and begin <= NOW_HOUR < end:
+                draw.text(
+                    (x1 + 9, y0 + 20),
+                    "EL 42.7°  AZ 138.4°  LOS −05:31",
+                    font=font(10, True),
+                    fill="#7be3aa",
+                )
 
     now_x = x_for(NOW_HOUR)
     draw.line((now_x, TOP + 31, now_x, HEIGHT - 36), fill="#ff334f", width=3)
@@ -152,7 +149,7 @@ def main() -> None:
 
     card_x = x_for(12.38) + 10
     card_y = TOP + 87
-    card_w, card_h = 350, 172
+    card_w, card_h = 350, 196
     draw.rounded_rectangle(
         (card_x, card_y, card_x + card_w, card_y + card_h),
         5,
@@ -165,6 +162,7 @@ def main() -> None:
     )
     draw.text((card_x + 15, card_y + 35), "NORAD 33591", font=font(9), fill="#78909c")
     popup_rows = [
+        ("CONT.", "AOS EM 27:14"),
         ("AOS", "12:09:00   AZ 214°"),
         ("MÁX", "12:15:42   EL 72.0°   AZ 148°"),
         ("LOS", "12:22:48   AZ  71°"),

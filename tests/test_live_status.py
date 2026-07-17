@@ -8,11 +8,29 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from mission_pass_timeline.app import (
     format_countdown,
     moving_window_bounds,
+    pass_countdown_text,
     popup_position,
 )
+from mission_pass_timeline.models import PassWindow, Satellite
 
 
 class LiveStatusTests(unittest.TestCase):
+    @staticmethod
+    def pass_window() -> PassWindow:
+        aos = datetime(2026, 7, 17, 15, 0, tzinfo=timezone.utc)
+        satellite = Satellite("TEST", "1 TEST", "2 TEST", 12345, aos)
+        return PassWindow(
+            satellite,
+            aos,
+            aos + timedelta(minutes=10),
+            aos + timedelta(minutes=5),
+            180.0,
+            90.0,
+            45.0,
+            135.0,
+            500.0,
+        )
+
     def test_window_keeps_only_thirty_minutes_of_history(self):
         now = datetime(2026, 7, 17, 15, 30, tzinfo=timezone.utc)
         start, end = moving_window_bounds(now, 6)
@@ -28,6 +46,22 @@ class LiveStatusTests(unittest.TestCase):
 
     def test_los_countdown_never_becomes_negative(self):
         self.assertEqual(format_countdown(timedelta(seconds=-1)), "00:00")
+
+    def test_pass_countdown_targets_aos_before_pass(self):
+        now = datetime(2026, 7, 17, 14, 58, tzinfo=timezone.utc)
+        self.assertEqual(pass_countdown_text(self.pass_window(), now), "AOS EM 02:00")
+
+    def test_pass_countdown_targets_los_during_pass(self):
+        now = datetime(2026, 7, 17, 15, 6, tzinfo=timezone.utc)
+        self.assertEqual(pass_countdown_text(self.pass_window(), now), "LOS EM 04:00")
+
+    def test_pass_countdown_reports_elapsed_time_after_los(self):
+        now = datetime(2026, 7, 17, 15, 11, tzinfo=timezone.utc)
+        self.assertEqual(pass_countdown_text(self.pass_window(), now), "LOS HÁ 01:00")
+
+    def test_pass_countdown_requires_aware_time(self):
+        with self.assertRaises(ValueError):
+            pass_countdown_text(self.pass_window(), datetime(2026, 7, 17, 15, 0))
 
     def test_popup_opens_to_the_right_when_there_is_room(self):
         position = popup_position((100, 200, 160, 230), (240, 150), (1200, 800))

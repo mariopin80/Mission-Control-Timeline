@@ -1,10 +1,10 @@
-# Registro de verificação — v0.4.1
+# Registro de verificação — v0.4.2
 
 Data: 17/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de vinte testes cobre:
+O conjunto de vinte e quatro testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -25,8 +25,12 @@ O conjunto de vinte testes cobre:
 - posicionamento do cartão à direita da passagem quando há espaço;
 - reposicionamento automático à esquerda junto à borda da tela;
 - contenção integral do cartão na janela compacta do aplicativo.
+- contador para AOS antes da passagem;
+- contador para LOS durante a passagem;
+- tempo decorrido desde LOS após a passagem;
+- rejeição de instante sem fuso horário no contador.
 
-Resultado: **20/20 aprovados**.
+Resultado: **24/24 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
 Python 3.10 e, adicionalmente, toda a suíte foi executada em **Python 3.10.20**.

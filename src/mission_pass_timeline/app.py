@@ -36,6 +36,19 @@ def format_countdown(duration: timedelta) -> str:
     return f"{minutes:02d}:{seconds:02d}"
 
 
+def pass_countdown_text(pass_window: PassWindow, now_utc: datetime) -> str:
+    """Describe the next boundary of a pass, or how long ago LOS occurred."""
+
+    if now_utc.tzinfo is None:
+        raise ValueError("O instante do contador deve possuir fuso horário.")
+    now_utc = now_utc.astimezone(UTC)
+    if now_utc < pass_window.aos_utc:
+        return f"AOS EM {format_countdown(pass_window.aos_utc - now_utc)}"
+    if now_utc < pass_window.los_utc:
+        return f"LOS EM {format_countdown(pass_window.los_utc - now_utc)}"
+    return f"LOS HÁ {format_countdown(now_utc - pass_window.los_utc)}"
+
+
 def moving_window_bounds(center: datetime, hours: int) -> tuple[datetime, datetime]:
     """Place the current instant 30 minutes after the start of a fixed span."""
 
@@ -81,6 +94,8 @@ class MissionPassApp:
         self._pass_results: dict[int, list[PassWindow]] = {}
         self._live_propagators: dict[int, Propagator] = {}
         self._pass_popup: tk.Frame | None = None
+        self._selected_pass: PassWindow | None = None
+        self._pass_countdown_label: tk.Label | None = None
         self._visible_pass_total = 0
         self._calculation_error_count = 0
         self._display_ready = False
@@ -202,27 +217,6 @@ class MissionPassApp:
         )
         self.window_selector.pack(side="left")
         self.window_selector.bind("<<ComboboxSelected>>", self._window_changed)
-
-        self.visibility_bar = tk.Frame(self.root, bg="#10261f", height=42)
-        self.visibility_bar.pack_propagate(False)
-        tk.Frame(self.visibility_bar, bg="#32d583", width=5).pack(side="left", fill="y")
-        tk.Label(
-            self.visibility_bar,
-            text="EM VISADA",
-            bg="#10261f",
-            fg="#7be3aa",
-            font=("Segoe UI Semibold", 10),
-        ).pack(side="left", padx=(13, 17))
-        self.visibility_label = tk.Label(
-            self.visibility_bar,
-            text="",
-            anchor="w",
-            justify="left",
-            bg="#10261f",
-            fg="#e8fff2",
-            font=("Consolas", 10, "bold"),
-        )
-        self.visibility_label.pack(side="left", fill="x", expand=True, padx=(0, 16))
 
         self.window_bar = tk.Frame(self.root, bg="#0c1720", height=44)
         self.window_bar.pack(fill="x")
@@ -405,7 +399,6 @@ class MissionPassApp:
             self._visible_pass_total = 0
             self._calculation_error_count = 0
             self._close_pass_popup()
-            self._hide_visibility_bar()
             self.timeline.show_message(
                 "Calculando passagens…", "A propagação SGP4 está em andamento."
             )
@@ -496,6 +489,7 @@ class MissionPassApp:
         self._close_pass_popup()
         if pass_window is None:
             return
+        self._selected_pass = pass_window
 
         local_timezone = datetime.now().astimezone().tzinfo
         aos = pass_window.aos_utc.astimezone(local_timezone)
@@ -531,6 +525,7 @@ class MissionPassApp:
         ).grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 9))
 
         rows = (
+            ("CONT.", pass_countdown_text(pass_window, datetime.now(UTC))),
             (
                 "AOS",
                 f"{aos:%H:%M:%S}   AZ {pass_window.aos_azimuth_deg:.0f}°",
@@ -558,14 +553,18 @@ class MissionPassApp:
                 fg="#78909c",
                 font=("Segoe UI Semibold", 8),
             ).grid(row=row, column=0, sticky="nw", padx=(0, 13), pady=2)
-            tk.Label(
+            value_label = tk.Label(
                 card,
                 text=value,
                 anchor="w",
                 bg="#0d1822",
                 fg="#dce8ef",
                 font=("Consolas", 9, "bold"),
-            ).grid(row=row, column=1, sticky="w", pady=2)
+            )
+            value_label.grid(row=row, column=1, sticky="w", pady=2)
+            if label == "CONT.":
+                value_label.configure(fg="#7be3aa")
+                self._pass_countdown_label = value_label
 
         popup.update_idletasks()
         width = popup.winfo_reqwidth()
@@ -595,6 +594,8 @@ class MissionPassApp:
             except tk.TclError:
                 pass
             self._pass_popup = None
+        self._selected_pass = None
+        self._pass_countdown_label = None
 
     def _global_click(self, event: tk.Event) -> None:
         if self._pass_popup is None:
@@ -607,17 +608,12 @@ class MissionPassApp:
                 pass
         self._close_pass_popup()
 
-    def _hide_visibility_bar(self) -> None:
-        if self.visibility_bar.winfo_manager():
-            self.visibility_bar.pack_forget()
-
-    def _update_live_visibility(self, now: datetime) -> None:
+    def _update_live_visibility(self, now: datetime) -> dict[int, str]:
         if not self._display_ready:
-            self._hide_visibility_bar()
-            return
+            return {}
 
         now_utc = now.astimezone(UTC)
-        details: list[str] = []
+        details: dict[int, str] = {}
         for satellite in self.satellites:
             active_pass = next(
                 (
@@ -642,30 +638,33 @@ class MissionPassApp:
                 continue
 
             countdown = format_countdown(active_pass.los_utc - now_utc)
-            details.append(
-                f"{satellite.name}   EL {observation.elevation_deg:5.1f}°   "
-                f"AZ {observation.azimuth_deg:5.1f}°   LOS −{countdown}"
+            details[satellite.catalog_number] = (
+                f"EL {observation.elevation_deg:.1f}°  "
+                f"AZ {observation.azimuth_deg:.1f}°  LOS −{countdown}"
             )
+        return details
 
-        if not details:
-            self._hide_visibility_bar()
+    def _update_pass_popup_countdown(self, now: datetime) -> None:
+        if self._selected_pass is None or self._pass_countdown_label is None:
             return
-
-        self.visibility_bar.configure(height=18 + 24 * len(details))
-        self.visibility_label.configure(text="\n".join(details))
-        if not self.visibility_bar.winfo_manager():
-            self.visibility_bar.pack(fill="x", before=self.window_bar)
+        try:
+            self._pass_countdown_label.configure(
+                text=pass_countdown_text(self._selected_pass, now.astimezone(UTC))
+            )
+        except tk.TclError:
+            self._close_pass_popup()
 
     def _tick(self) -> None:
         now = datetime.now().astimezone()
         self._refresh_window_label(now)
         if self.satellites and self._display_ready:
             start_local, end_local = self._window_bounds(now)
+            self.timeline.set_live_details(self._update_live_visibility(now))
             self.timeline.set_window(start_local, end_local)
             self.timeline.update_now_marker(now)
-            self._update_live_visibility(now)
         else:
-            self._hide_visibility_bar()
+            self.timeline.set_live_details({})
+        self._update_pass_popup_countdown(now)
 
         if self.satellites and not self._calculation_in_progress:
             needs_refresh = (
