@@ -3,6 +3,7 @@ from __future__ import annotations
 import ctypes
 import math
 import queue
+import sys
 import threading
 import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -30,8 +31,11 @@ WINDOW_OPTIONS = (3, 6, 8, 12, 24)
 CALCULATION_REFRESH = timedelta(minutes=5)
 CALCULATION_MARGIN = timedelta(minutes=30)
 HISTORY_DURATION = timedelta(minutes=30)
+NEXT_PASS_LOOKAHEAD = timedelta(hours=24)
 ORBITAL_UPDATE_INTERVAL = timedelta(hours=24)
 CELESTRAK_MIN_REFRESH = timedelta(hours=2)
+TWO_MINUTE_ALERT_SECONDS = 120
+FINAL_COUNTDOWN_SECONDS = 5
 
 
 def format_countdown(duration: timedelta) -> str:
@@ -56,6 +60,74 @@ def pass_countdown_text(pass_window: PassWindow, now_utc: datetime) -> str:
     if now_utc < pass_window.los_utc:
         return f"LOS EM {format_countdown(pass_window.los_utc - now_utc)}"
     return f"LOS HÁ {format_countdown(now_utc - pass_window.los_utc)}"
+
+
+def next_upcoming_pass(
+    results: dict[int, list[PassWindow]], now_utc: datetime
+) -> PassWindow | None:
+    """Return the pass with the earliest future AOS across all satellites."""
+
+    if now_utc.tzinfo is None:
+        raise ValueError("O instante da próxima passagem deve possuir fuso horário.")
+    now_utc = now_utc.astimezone(UTC)
+    return min(
+        (
+            pass_window
+            for passes in results.values()
+            for pass_window in passes
+            if pass_window.aos_utc > now_utc
+        ),
+        key=lambda pass_window: pass_window.aos_utc,
+        default=None,
+    )
+
+
+class AosAlertController:
+    """Emit each alert at most once for the currently upcoming pass."""
+
+    def __init__(self) -> None:
+        self._pass_key: tuple[int, datetime] | None = None
+        self._two_minute_sent = False
+        self._countdown_sent: set[int] = set()
+
+    def events(self, pass_window: PassWindow | None, now_utc: datetime) -> list[str]:
+        if now_utc.tzinfo is None:
+            raise ValueError("O instante dos alertas deve possuir fuso horário.")
+        if pass_window is None:
+            self._reset(None)
+            return []
+
+        key = (pass_window.satellite.catalog_number, pass_window.aos_utc)
+        if key != self._pass_key:
+            self._reset(key)
+
+        seconds_until_aos = (
+            pass_window.aos_utc - now_utc.astimezone(UTC)
+        ).total_seconds()
+        if seconds_until_aos <= 0:
+            return []
+
+        events: list[str] = []
+        if (
+            FINAL_COUNTDOWN_SECONDS < seconds_until_aos <= TWO_MINUTE_ALERT_SECONDS
+            and not self._two_minute_sent
+        ):
+            self._two_minute_sent = True
+            events.append("two_minute")
+
+        countdown_second = math.ceil(seconds_until_aos)
+        if (
+            1 <= countdown_second <= FINAL_COUNTDOWN_SECONDS
+            and countdown_second not in self._countdown_sent
+        ):
+            self._countdown_sent.add(countdown_second)
+            events.append("countdown")
+        return events
+
+    def _reset(self, key: tuple[int, datetime] | None) -> None:
+        self._pass_key = key
+        self._two_minute_sent = False
+        self._countdown_sent.clear()
 
 
 def moving_window_bounds(center: datetime, hours: int) -> tuple[datetime, datetime]:
@@ -99,6 +171,7 @@ class MissionPassApp:
         self.store = SettingsStore()
         self.station = self.store.load_station()
         self.timeline_hours = self.store.load_timeline_hours()
+        self.sound_enabled = self.store.load_sound_enabled()
         self.satellites: list[Satellite] = []
         self.catalogs: list[int] = []
         self._pass_results: dict[int, list[PassWindow]] = {}
@@ -116,6 +189,7 @@ class MissionPassApp:
         self._last_orbital_update_attempt: datetime | None = None
         self._last_orbital_cache_update: datetime | None = None
         self._orbital_status = "SEM DADOS ORBITAIS"
+        self._aos_alerts = AosAlertController()
         self._result_queue: queue.Queue[
             tuple[
                 int,
@@ -224,6 +298,9 @@ class MissionPassApp:
         ttk.Button(controls, text="Estação", command=self.open_station).pack(
             side="left", padx=4
         )
+        self.sound_button = ttk.Button(controls, text="", command=self._toggle_sound)
+        self.sound_button.pack(side="left", padx=4)
+        self._refresh_sound_button()
         ttk.Label(controls, text="JANELA", style="Hint.TLabel").pack(
             side="left", padx=(18, 7)
         )
@@ -272,17 +349,59 @@ class MissionPassApp:
 
     def _refresh_window_label(self, now: datetime | None = None) -> None:
         now = now or datetime.now().astimezone()
-        start_local, end_local = self._window_bounds(now)
-        if start_local.date() == end_local.date():
-            interval = f"{start_local:%d/%m/%Y %H:%M} — {end_local:%H:%M}"
-        else:
-            interval = f"{start_local:%d/%m %H:%M} — {end_local:%d/%m %H:%M}"
-        self.window_label.configure(
-            text=(
-                f"JANELA MÓVEL {self.timeline_hours} H  •  {interval}"
-                "  •  30 MIN DE HISTÓRICO"
-            )
+        next_pass = (
+            next_upcoming_pass(self._pass_results, now.astimezone(UTC))
+            if self._display_ready
+            else None
         )
+        if next_pass is None:
+            next_pass_text = "PRÓXIMA PASSAGEM • NENHUMA NAS PRÓXIMAS 24 H"
+        else:
+            countdown = format_countdown(next_pass.aos_utc - now.astimezone(UTC))
+            next_pass_text = (
+                f"PRÓXIMA PASSAGEM • {next_pass.satellite.name}  •  AOS EM {countdown}"
+            )
+        self.window_label.configure(text=f"{now:%d/%m/%Y}  •  {next_pass_text}")
+
+    def _emit_alert_sound(self, event: str) -> None:
+        if sys.platform != "win32":
+            try:
+                self.root.bell()
+            except tk.TclError:
+                pass
+            return
+
+        def play() -> None:
+            try:
+                import winsound
+
+                frequency = 1050 if event == "two_minute" else 1450
+                duration_ms = 350 if event == "two_minute" else 160
+                winsound.Beep(frequency, duration_ms)
+            except (ImportError, RuntimeError):
+                pass
+
+        threading.Thread(target=play, daemon=True).start()
+
+    def _refresh_sound_button(self) -> None:
+        self.sound_button.configure(
+            text="SOM ATIVO" if self.sound_enabled else "SOM MUDO"
+        )
+
+    def _toggle_sound(self) -> None:
+        self.sound_enabled = not self.sound_enabled
+        self.store.save_sound_enabled(self.sound_enabled)
+        self._refresh_sound_button()
+
+    def _update_aos_alerts(self, now: datetime) -> None:
+        next_pass = (
+            next_upcoming_pass(self._pass_results, now.astimezone(UTC))
+            if self._display_ready
+            else None
+        )
+        for event in self._aos_alerts.events(next_pass, now.astimezone(UTC)):
+            if self.sound_enabled:
+                self._emit_alert_sound(event)
 
     def _refresh_labels(self) -> None:
         self.station_label.configure(
@@ -561,7 +680,10 @@ class MissionPassApp:
         calculation_center = datetime.now().astimezone()
         view_start, view_end = self._window_bounds(calculation_center)
         coverage_start = (view_start - CALCULATION_MARGIN).astimezone(UTC)
-        coverage_end = (view_end + CALCULATION_MARGIN).astimezone(UTC)
+        coverage_end = max(
+            (view_end + CALCULATION_MARGIN).astimezone(UTC),
+            (calculation_center + NEXT_PASS_LOOKAHEAD).astimezone(UTC),
+        )
         station = self.station
         satellites = list(self.satellites)
 
@@ -829,6 +951,7 @@ class MissionPassApp:
     def _tick(self) -> None:
         now = datetime.now().astimezone()
         self._refresh_window_label(now)
+        self._update_aos_alerts(now)
         if self.satellites and self._display_ready:
             start_local, end_local = self._window_bounds(now)
             self.timeline.set_live_details(self._update_live_visibility(now))

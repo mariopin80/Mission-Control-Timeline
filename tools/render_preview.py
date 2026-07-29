@@ -47,20 +47,22 @@ def main() -> None:
         fill="#78909c",
     )
 
-    draw.rounded_rectangle((805, 24, 927, 78), 8, fill="#1d303d")
-    draw.text((824, 41), "LISTA NORAD", font=font(12, True), fill="#e8f1f5")
-    draw.rounded_rectangle((938, 24, 1037, 78), 8, fill="#1d303d")
-    draw.text((954, 41), "ATUALIZAR", font=font(11, True), fill="#e8f1f5")
-    draw.rounded_rectangle((1048, 24, 1162, 78), 8, fill="#1d303d")
-    draw.text((1072, 41), "ESTAÇÃO", font=font(13, True), fill="#e8f1f5")
-    draw.text((1182, 43), "JANELA", font=font(11, True), fill="#78909c")
-    draw.rounded_rectangle((1260, 24, 1388, 78), 7, fill="#09141d", outline="#29495b")
-    draw.text((1295, 41), "6 h    ▼", font=font(13, True), fill="#e8f1f5")
+    draw.rounded_rectangle((690, 24, 812, 78), 8, fill="#1d303d")
+    draw.text((709, 41), "LISTA NORAD", font=font(12, True), fill="#e8f1f5")
+    draw.rounded_rectangle((823, 24, 922, 78), 8, fill="#1d303d")
+    draw.text((839, 41), "ATUALIZAR", font=font(11, True), fill="#e8f1f5")
+    draw.rounded_rectangle((933, 24, 1047, 78), 8, fill="#1d303d")
+    draw.text((957, 41), "ESTAÇÃO", font=font(13, True), fill="#e8f1f5")
+    draw.rounded_rectangle((1058, 24, 1165, 78), 8, fill="#1d303d")
+    draw.text((1074, 41), "SOM ATIVO", font=font(11, True), fill="#e8f1f5")
+    draw.text((1180, 43), "JANELA", font=font(11, True), fill="#78909c")
+    draw.rounded_rectangle((1250, 24, 1388, 78), 7, fill="#09141d", outline="#29495b")
+    draw.text((1285, 41), "6 h    ▼", font=font(13, True), fill="#e8f1f5")
 
     draw.rectangle((0, 106, WIDTH, TOP), fill="#0c1720")
     draw.text(
         (24, 121),
-        "JANELA MÓVEL 6 H  •  17/07/2026 11:12 — 17:12  •  30 MIN DE HISTÓRICO",
+        "24/07/2026  •  PRÓXIMA PASSAGEM • NANOSATC-BR1  •  AOS EM 00:18:42",
         font=font(14, True),
         fill="#e6f0f5",
     )

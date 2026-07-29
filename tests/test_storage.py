@@ -37,6 +37,21 @@ class SettingsStoreTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 store.save_timeline_hours(5)
 
+    def test_sound_is_enabled_by_default_and_choice_persists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = SettingsStore(Path(directory))
+            self.assertTrue(store.load_sound_enabled())
+            store.save_sound_enabled(False)
+            self.assertFalse(SettingsStore(Path(directory)).load_sound_enabled())
+
+    def test_invalid_sound_choice_falls_back_to_enabled(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = SettingsStore(Path(directory))
+            store.config_path.write_text(
+                json.dumps({"sound_enabled": "no"}), encoding="utf-8"
+            )
+            self.assertTrue(store.load_sound_enabled())
+
     def test_catalog_list_and_orbital_cache_are_separate_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

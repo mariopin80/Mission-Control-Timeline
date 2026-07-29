@@ -4,10 +4,17 @@ Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que os satélites de uma lista de números
 NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.5.1
+## Versão 0.6.0
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
 - marcador vermelho do horário atual após apenas 30 minutos de histórico;
+- cabeçalho simplificado com a data local e a próxima passagem entre todos os
+  satélites, mostrando nome e contagem regressiva para AOS;
+- busca da próxima passagem em um horizonte de 24 horas, independentemente da
+  escala selecionada na linha do tempo;
+- alerta sonoro único quando faltam dois minutos para AOS;
+- contagem regressiva sonora com um bip por segundo nos cinco segundos finais;
+- botão persistente para ativar ou silenciar os alertas;
 - grade adaptativa de 15 minutos a 3 horas conforme a escala escolhida;
 - importação de TXT com um número de catálogo NORAD por linha;
 - atualização automática de dados orbitais pelo CelesTrak ao iniciar e a cada 24 h;
@@ -24,6 +31,16 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - fechamento automático do cartão ao clicar fora de uma passagem;
 - aviso visual de dados orbitais antigos;
 - detalhes da passagem ao clicar em uma faixa.
+
+### Alterações da versão 0.6.0
+
+- remoção das informações redundantes “janela móvel” e “30 min de histórico” do
+  cabeçalho;
+- data local mantida na linha superior;
+- identificação automática do AOS futuro mais próximo entre todos os satélites;
+- proteção contra repetição dos alertas durante redesenhos e recálculos;
+- frequências distintas para o aviso de dois minutos e a contagem final;
+- botão **Som ativo/Som mudo**, com a preferência preservada entre execuções.
 
 ### Correções da versão 0.5.1
 

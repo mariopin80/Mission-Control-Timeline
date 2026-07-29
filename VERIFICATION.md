@@ -1,10 +1,10 @@
-# Registro de verificação — v0.5.1
+# Registro de verificação — v0.6.0
 
-Data: 17/07/2026
+Data: 24/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de quarenta testes cobre:
+O conjunto de 48 testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -42,14 +42,22 @@ O conjunto de quarenta testes cobre:
 - atualização completa quando o cache ultrapassa o intervalo mínimo.
 - troca imediata para a fonte de contingência após erro da fonte principal;
 - conversão da resposta TLE do SatNOGS para o cache OMM.
+- seleção do AOS futuro mais próximo entre diferentes satélites;
+- descarte de passagens já iniciadas ou encerradas na indicação de próximo AOS;
+- emissão única do alerta de dois minutos;
+- emissão de cinco eventos distintos na contagem regressiva final;
+- bloqueio de bipes repetidos dentro do mesmo segundo;
+- reinicialização segura dos alertas para a passagem seguinte;
+- som habilitado por padrão e persistência da opção de silenciamento;
+- recuperação segura para o padrão ativo quando a configuração é inválida.
 
-Resultado: **40/40 aprovados**.
+Resultado: **48/48 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
-Python 3.10 e, adicionalmente, toda a suíte foi executada em **Python 3.10.20**.
-O módulo principal foi importado e o pacote PyInstaller foi gerado com sucesso
-nesse mesmo interpretador. A dependência de `datetime.UTC`, introduzida somente
-no Python 3.11, foi removida.
+Python 3.10. A suíte da v0.6.0 foi executada em **Python 3.12.13**. A base
+anterior também havia sido validada em **Python 3.10.20**, e as novas
+construções permanecem compatíveis com a versão mínima. A dependência de
+`datetime.UTC`, introduzida somente no Python 3.11, continua ausente.
 
 ## Comparação orbital independente
 
@@ -68,6 +76,6 @@ e são pequenas para a finalidade de planejamento de passagens.
 
 ## Empacotamento
 
-O projeto foi empacotado com sucesso em ambiente limpo usando PyInstaller 6.21.
-O arquivo `build_windows.bat` executa o mesmo fluxo em Windows e produz o
-executável independente da plataforma.
+O projeto foi empacotado com sucesso em um teste de fumaça usando PyInstaller
+6.21. O arquivo `build_windows.bat` executa o fluxo equivalente em Windows e
+produz o executável independente da instalação local de Python.

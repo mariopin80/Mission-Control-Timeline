@@ -30,6 +30,7 @@ def program_dir() -> Path:
 class SettingsStore:
     VALID_TIMELINE_HOURS = (3, 6, 8, 12, 24)
     DEFAULT_TIMELINE_HOURS = 6
+    DEFAULT_SOUND_ENABLED = True
 
     def __init__(
         self, directory: Path | None = None, cache_directory: Path | None = None
@@ -88,6 +89,17 @@ class SettingsStore:
             raise ValueError(f"Janela de tempo inválida: {hours} h")
         document = self._load_document()
         document["timeline_hours"] = hours
+        self._save_document(document)
+
+    def load_sound_enabled(self) -> bool:
+        value = self._load_document().get("sound_enabled", self.DEFAULT_SOUND_ENABLED)
+        return value if isinstance(value, bool) else self.DEFAULT_SOUND_ENABLED
+
+    def save_sound_enabled(self, enabled: bool) -> None:
+        if not isinstance(enabled, bool):
+            raise TypeError("O estado do som deve ser verdadeiro ou falso.")
+        document = self._load_document()
+        document["sound_enabled"] = enabled
         self._save_document(document)
 
     def load_catalog_text(self) -> str | None:

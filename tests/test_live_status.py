@@ -6,8 +6,10 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from mission_pass_timeline.app import (
+    AosAlertController,
     format_countdown,
     moving_window_bounds,
+    next_upcoming_pass,
     pass_countdown_text,
     popup_position,
 )
@@ -62,6 +64,95 @@ class LiveStatusTests(unittest.TestCase):
     def test_pass_countdown_requires_aware_time(self):
         with self.assertRaises(ValueError):
             pass_countdown_text(self.pass_window(), datetime(2026, 7, 17, 15, 0))
+
+    def test_next_upcoming_pass_selects_earliest_aos_across_satellites(self):
+        first = self.pass_window()
+        second = self.pass_window()
+        second = PassWindow(
+            Satellite(
+                "LATER",
+                "1 LATER",
+                "2 LATER",
+                54321,
+                second.satellite.epoch_utc,
+            ),
+            second.aos_utc + timedelta(minutes=20),
+            second.los_utc + timedelta(minutes=20),
+            second.max_utc + timedelta(minutes=20),
+            second.aos_azimuth_deg,
+            second.los_azimuth_deg,
+            second.max_elevation_deg,
+            second.max_azimuth_deg,
+            second.min_range_km,
+        )
+        now = first.aos_utc - timedelta(hours=1)
+        selected = next_upcoming_pass({54321: [second], 12345: [first]}, now)
+        self.assertIs(selected, first)
+
+    def test_next_upcoming_pass_ignores_active_and_finished_passes(self):
+        current = self.pass_window()
+        now = current.aos_utc + timedelta(minutes=2)
+        self.assertIsNone(next_upcoming_pass({12345: [current]}, now))
+
+    def test_two_minute_alert_is_emitted_only_once(self):
+        controller = AosAlertController()
+        pass_window = self.pass_window()
+        self.assertEqual(
+            controller.events(
+                pass_window, pass_window.aos_utc - timedelta(seconds=120)
+            ),
+            ["two_minute"],
+        )
+        self.assertEqual(
+            controller.events(
+                pass_window, pass_window.aos_utc - timedelta(seconds=119)
+            ),
+            [],
+        )
+
+    def test_final_countdown_emits_five_distinct_alerts(self):
+        controller = AosAlertController()
+        pass_window = self.pass_window()
+        events = []
+        for seconds in (5, 4, 3, 2, 1):
+            events.extend(
+                controller.events(
+                    pass_window, pass_window.aos_utc - timedelta(seconds=seconds)
+                )
+            )
+        self.assertEqual(events, ["countdown"] * 5)
+
+    def test_final_countdown_does_not_repeat_within_same_second(self):
+        controller = AosAlertController()
+        pass_window = self.pass_window()
+        now = pass_window.aos_utc - timedelta(seconds=4.8)
+        self.assertEqual(controller.events(pass_window, now), ["countdown"])
+        self.assertEqual(
+            controller.events(pass_window, now + timedelta(milliseconds=100)), []
+        )
+
+    def test_alert_state_resets_for_the_next_pass(self):
+        controller = AosAlertController()
+        first = self.pass_window()
+        second = PassWindow(
+            first.satellite,
+            first.aos_utc + timedelta(hours=1),
+            first.los_utc + timedelta(hours=1),
+            first.max_utc + timedelta(hours=1),
+            first.aos_azimuth_deg,
+            first.los_azimuth_deg,
+            first.max_elevation_deg,
+            first.max_azimuth_deg,
+            first.min_range_km,
+        )
+        self.assertEqual(
+            controller.events(first, first.aos_utc - timedelta(seconds=120)),
+            ["two_minute"],
+        )
+        self.assertEqual(
+            controller.events(second, second.aos_utc - timedelta(seconds=120)),
+            ["two_minute"],
+        )
 
     def test_popup_opens_to_the_right_when_there_is_room(self):
         position = popup_position((100, 200, 160, 230), (240, 150), (1200, 800))
