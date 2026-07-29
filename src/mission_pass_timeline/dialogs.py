@@ -163,6 +163,10 @@ class SetupDialog(tk.Toplevel):
         self.language_hint.pack(anchor="w")
 
     def _build_about_tab(self) -> None:
+        self.about_tab.columnconfigure(1, weight=1)
+        details = ttk.Frame(self.about_tab)
+        details.grid(row=0, column=1, sticky="nsew", padx=(24, 0))
+
         logo_path = self._bundle_root() / "assets" / "mission-control-timeline-about.png"
         self.about_logo_image: tk.PhotoImage | None = None
         try:
@@ -173,43 +177,43 @@ class SetupDialog(tk.Toplevel):
             ttk.Label(
                 self.about_tab,
                 image=self.about_logo_image,
-            ).pack(anchor="w", pady=(0, 14))
+            ).grid(row=0, column=0, sticky="nw")
         ttk.Label(
-            self.about_tab,
+            details,
             text="MISSION CONTROL TIMELINE",
             style="Title.TLabel",
         ).pack(anchor="w")
         self.about_description = ttk.Label(
-            self.about_tab, wraplength=610, justify="left"
+            details, wraplength=410, justify="left"
         )
-        self.about_description.pack(anchor="w", pady=(15, 22))
-        self.about_version = ttk.Label(self.about_tab, style="Hint.TLabel")
+        self.about_description.pack(anchor="w", pady=(12, 16))
+        self.about_version = ttk.Label(details, style="Hint.TLabel")
         self.about_version.pack(anchor="w", pady=3)
-        self.about_developer = ttk.Label(self.about_tab, style="Hint.TLabel")
+        self.about_developer = ttk.Label(details, style="Hint.TLabel")
         self.about_developer.pack(anchor="w", pady=3)
-        self.about_orbital = ttk.Label(self.about_tab, style="Hint.TLabel")
+        self.about_orbital = ttk.Label(details, style="Hint.TLabel")
         self.about_orbital.pack(anchor="w", pady=3)
         self.about_license_summary = ttk.Label(
-            self.about_tab,
+            details,
             style="Hint.TLabel",
-            wraplength=610,
+            wraplength=410,
             justify="left",
         )
-        self.about_license_summary.pack(anchor="w", pady=(14, 10))
-        legal_buttons = ttk.Frame(self.about_tab)
-        legal_buttons.pack(anchor="w")
+        self.about_license_summary.pack(anchor="w", pady=(14, 12))
+        legal_buttons = ttk.Frame(details)
+        legal_buttons.pack(anchor="w", fill="x")
         self.license_button = ttk.Button(
             legal_buttons, command=lambda: self._open_legal_document("LICENSE")
         )
-        self.license_button.pack(side="left")
+        self.license_button.pack(anchor="w", fill="x", pady=2)
         self.terms_button = ttk.Button(
             legal_buttons, command=lambda: self._open_legal_document("TERMS")
         )
-        self.terms_button.pack(side="left", padx=8)
+        self.terms_button.pack(anchor="w", fill="x", pady=2)
         self.privacy_button = ttk.Button(
             legal_buttons, command=lambda: self._open_legal_document("PRIVACY")
         )
-        self.privacy_button.pack(side="left")
+        self.privacy_button.pack(anchor="w", fill="x", pady=2)
 
     @staticmethod
     def _bundle_root() -> Path:
