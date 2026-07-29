@@ -1,0 +1,23 @@
+MISSION CONTROL TIMELINE — PRIVACY NOTICE
+Version 1.0 — 2026
+
+Mission Control Timeline does not require an account and does not include
+advertising, analytics, tracking or telemetry operated by the author.
+
+The application stores station settings, selected NORAD numbers, preferences
+and an orbital-data cache locally on the user’s computer. These files remain
+under the user’s Windows profile and are not sent to the author.
+
+To update orbital data, the application makes internet requests to independent
+providers such as CelesTrak and SatNOGS. Those providers receive technical
+connection data normally present in an internet request, including the public
+IP address, date, time and requested catalog number. Their privacy policies and
+server logs are outside the author’s control.
+
+The application does not intentionally transmit station coordinates, station
+name or sound/language preferences to the author. Uninstalling the application
+may leave user settings in the local application-data folder so they can be
+reused after reinstalling; the user may delete that folder manually.
+
+Questions: contact the author through the official project distribution channel.
+

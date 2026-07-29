@@ -1,0 +1,37 @@
+MISSION CONTROL TIMELINE — TERMOS DE USO
+Versão 1.0 — 2026
+
+1. FINALIDADE. O Mission Control Timeline é uma ferramenta auxiliar para
+visualizar passagens previstas de satélites a partir de uma estação configurada.
+
+2. RESPONSABILIDADE DO USUÁRIO. O usuário é responsável pelas coordenadas,
+altitude, máscara do horizonte, relógio do sistema, catálogos NORAD selecionados
+e interpretação dos resultados. As previsões devem ser verificadas
+independentemente antes de operações relevantes.
+
+3. SERVIÇOS DE TERCEIROS. O aplicativo pode consultar dados orbitais do
+CelesTrak e SatNOGS. Esses serviços independentes podem ficar indisponíveis,
+alterar formatos, impor limites ou fornecer informações incompletas ou antigas.
+Seus respectivos termos e políticas também se aplicam.
+
+4. USO ACEITÁVEL. É proibido usar o software para sobrecarregar, contornar
+limites, interferir ou obter acesso não autorizado aos serviços de dados
+orbitais. Também é proibido utilizá-lo ilegalmente ou para interferir em
+satélites, serviços de rádio ou comunicações.
+
+5. LIMITAÇÃO OPERACIONAL. AOS, LOS, azimute, elevação, distância e contagens
+regressivas são estimativas. O software não é certificado para voo, navegação,
+emergência, segurança, lançamento, comando de espaçonaves ou operações críticas.
+
+6. ATUALIZAÇÕES. Recursos, fornecedores, formatos e estes termos podem mudar em
+versões futuras. Uma atualização poderá exigir aceite de termos revisados. O
+autor não é obrigado a manter ou suportar indefinidamente todas as versões.
+
+7. SUSPENSÃO. A permissão de uso poderá ser encerrada em caso de violação
+material da licença ou destes termos.
+
+8. LEGISLAÇÃO. Aplica-se a legislação brasileira, preservados os direitos
+obrigatórios vigentes na jurisdição do usuário.
+
+O uso do software indica aceitação destes Termos de Uso.
+

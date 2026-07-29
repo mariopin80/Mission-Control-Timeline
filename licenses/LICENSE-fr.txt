@@ -1,0 +1,61 @@
+MISSION CONTROL TIMELINE — LICENCE DE LOGICIEL FREEWARE
+Version 1.0 — 2026
+
+Copyright © 2026 Mario Pin — PU2PTU. Tous droits réservés.
+
+1. CONCESSION
+L’auteur accorde une licence gratuite, non exclusive et non transférable pour
+installer et utiliser Mission Control Timeline à des fins personnelles,
+éducatives, expérimentales et de radioamateur.
+
+2. REDISTRIBUTION
+Le programme d’installation original et non modifié peut être copié et partagé
+gratuitement. Il est interdit de le vendre, de facturer son accès, de le
+reconditionner ou de distribuer des copies modifiées sans autorisation écrite
+préalable de l’auteur.
+
+3. RESTRICTIONS
+Sauf autorisation expresse de la loi, il est interdit de modifier, adapter,
+faire de l’ingénierie inverse, décompiler, concéder en sous-licence, louer ou
+exploiter commercialement le logiciel ; de retirer les mentions d’auteur ; ou
+d’utiliser le nom, le logo ou l’identité visuelle pour présenter un autre
+produit comme officiel ou approuvé.
+
+4. DONNÉES ORBITALES ET SERVICES RÉSEAU
+Les données orbitales proviennent de tiers indépendants, notamment CelesTrak et
+SatNOGS. Leur disponibilité, précision, fréquence de mise à jour et continuité
+ne sont pas contrôlées par l’auteur et peuvent relever de leurs propres
+conditions. Les prévisions peuvent être affectées par des données anciennes,
+l’horloge, les coordonnées, le masque d’horizon, les approximations et le
+réseau.
+
+5. UTILISATION PRÉVUE
+Le logiciel est une aide à la planification et au radioamateurisme. Il ne
+constitue pas un système certifié de vol, navigation, sécurité, urgence,
+lancement, commande spatiale ou opération critique. L’utilisateur doit
+vérifier les informations avant toute activité concernant sécurité, biens,
+réglementation ou équipements de valeur.
+
+6. ABSENCE DE GARANTIE
+Le logiciel est fourni « en l’état » et « selon disponibilité », sans garantie,
+dans les limites autorisées par la loi. Le fonctionnement continu, l’absence
+d’erreurs, la compatibilité universelle et les données de tiers ne sont pas
+garantis.
+
+7. LIMITATION DE RESPONSABILITÉ
+Dans les limites autorisées par la loi, l’auteur ne répond pas des dommages,
+pertes de données, contacts manqués, interruptions ou dommages matériels. Les
+droits et responsabilités qui ne peuvent légalement être exclus demeurent.
+
+8. COMPOSANTS TIERS
+Les composants inclus conservent leurs licences et mentions respectives. Cette
+licence couvre l’application originale, son nom, interface, documentation et
+identité visuelle.
+
+9. RÉSILIATION ET DROIT
+La licence prend fin automatiquement en cas de violation substantielle. Les
+copies non autorisées ne devront plus être utilisées ou distribuées. Le droit
+brésilien s’applique, sans limiter les droits impératifs de l’utilisateur.
+
+L’installation ou l’utilisation du logiciel vaut acceptation de ces conditions.
+

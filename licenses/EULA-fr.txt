@@ -1,0 +1,124 @@
+MISSION CONTROL TIMELINE — LICENCE DE LOGICIEL FREEWARE
+Version 1.0 — 2026
+
+Copyright © 2026 Mario Pin — PU2PTU. Tous droits réservés.
+
+1. CONCESSION
+L’auteur accorde une licence gratuite, non exclusive et non transférable pour
+installer et utiliser Mission Control Timeline à des fins personnelles,
+éducatives, expérimentales et de radioamateur.
+
+2. REDISTRIBUTION
+Le programme d’installation original et non modifié peut être copié et partagé
+gratuitement. Il est interdit de le vendre, de facturer son accès, de le
+reconditionner ou de distribuer des copies modifiées sans autorisation écrite
+préalable de l’auteur.
+
+3. RESTRICTIONS
+Sauf autorisation expresse de la loi, il est interdit de modifier, adapter,
+faire de l’ingénierie inverse, décompiler, concéder en sous-licence, louer ou
+exploiter commercialement le logiciel ; de retirer les mentions d’auteur ; ou
+d’utiliser le nom, le logo ou l’identité visuelle pour présenter un autre
+produit comme officiel ou approuvé.
+
+4. DONNÉES ORBITALES ET SERVICES RÉSEAU
+Les données orbitales proviennent de tiers indépendants, notamment CelesTrak et
+SatNOGS. Leur disponibilité, précision, fréquence de mise à jour et continuité
+ne sont pas contrôlées par l’auteur et peuvent relever de leurs propres
+conditions. Les prévisions peuvent être affectées par des données anciennes,
+l’horloge, les coordonnées, le masque d’horizon, les approximations et le
+réseau.
+
+5. UTILISATION PRÉVUE
+Le logiciel est une aide à la planification et au radioamateurisme. Il ne
+constitue pas un système certifié de vol, navigation, sécurité, urgence,
+lancement, commande spatiale ou opération critique. L’utilisateur doit
+vérifier les informations avant toute activité concernant sécurité, biens,
+réglementation ou équipements de valeur.
+
+6. ABSENCE DE GARANTIE
+Le logiciel est fourni « en l’état » et « selon disponibilité », sans garantie,
+dans les limites autorisées par la loi. Le fonctionnement continu, l’absence
+d’erreurs, la compatibilité universelle et les données de tiers ne sont pas
+garantis.
+
+7. LIMITATION DE RESPONSABILITÉ
+Dans les limites autorisées par la loi, l’auteur ne répond pas des dommages,
+pertes de données, contacts manqués, interruptions ou dommages matériels. Les
+droits et responsabilités qui ne peuvent légalement être exclus demeurent.
+
+8. COMPOSANTS TIERS
+Les composants inclus conservent leurs licences et mentions respectives. Cette
+licence couvre l’application originale, son nom, interface, documentation et
+identité visuelle.
+
+9. RÉSILIATION ET DROIT
+La licence prend fin automatiquement en cas de violation substantielle. Les
+copies non autorisées ne devront plus être utilisées ou distribuées. Le droit
+brésilien s’applique, sans limiter les droits impératifs de l’utilisateur.
+
+L’installation ou l’utilisation du logiciel vaut acceptation de ces conditions.
+
+========================================================================
+
+MISSION CONTROL TIMELINE — CONDITIONS D’UTILISATION
+Version 1.0 — 2026
+
+1. OBJET. Mission Control Timeline aide à visualiser les passages satellitaires
+prévus depuis une station configurée.
+
+2. RESPONSABILITÉ. L’utilisateur est responsable des coordonnées, de
+l’altitude, du masque d’horizon, de l’horloge, des catalogues NORAD et de
+l’interprétation. Les prévisions doivent être vérifiées avant toute opération
+importante.
+
+3. SERVICES TIERS. L’application peut consulter CelesTrak et SatNOGS. Ces
+services indépendants peuvent être indisponibles, changer de format, imposer
+des limites ou fournir des données incomplètes ou anciennes. Leurs propres
+conditions s’appliquent également.
+
+4. USAGE ACCEPTABLE. Il est interdit d’utiliser le logiciel pour surcharger,
+contourner les limites, perturber ou accéder sans autorisation aux services de
+données orbitales, ou pour perturber illégalement satellites, radio ou
+communications.
+
+5. LIMITATION OPÉRATIONNELLE. AOS, LOS, azimut, élévation, distance et comptes à
+rebours sont des estimations. Le logiciel n’est pas certifié pour le vol, la
+navigation, l’urgence, la sécurité, le lancement, la commande spatiale ou les
+opérations critiques.
+
+6. MISES À JOUR. Fonctions, fournisseurs, formats et conditions peuvent
+changer. Une mise à jour peut exiger l’acceptation de conditions révisées.
+L’auteur n’est pas tenu de maintenir toutes les versions indéfiniment.
+
+7. SUSPENSION. L’autorisation d’utilisation peut prendre fin en cas de violation
+substantielle de la licence ou de ces conditions.
+
+8. DROIT. Le droit brésilien s’applique, sans affecter les droits impératifs de
+la juridiction de l’utilisateur.
+
+L’utilisation du logiciel vaut acceptation de ces Conditions.
+
+========================================================================
+
+MISSION CONTROL TIMELINE — AVIS DE CONFIDENTIALITÉ
+Version 1.0 — 2026
+
+Mission Control Timeline ne nécessite aucun compte et ne contient ni publicité,
+ni analyse, ni suivi, ni télémétrie gérés par l’auteur.
+
+L’application conserve localement la station, les numéros NORAD, préférences et
+cache orbital. Ces fichiers restent dans le profil Windows de l’utilisateur et
+ne sont pas envoyés à l’auteur.
+
+Pour actualiser les données orbitales, l’application interroge des fournisseurs
+indépendants comme CelesTrak et SatNOGS. Ils reçoivent les données techniques
+habituelles d’une requête internet, notamment l’IP publique, la date, l’heure et
+le catalogue demandé. Leurs politiques et journaux échappent au contrôle de
+l’auteur.
+
+L’application ne transmet pas intentionnellement à l’auteur les coordonnées,
+le nom de station ou les préférences. La désinstallation peut conserver les
+réglages locaux pour une réinstallation ; l’utilisateur peut les supprimer.
+
+Questions : contactez l’auteur par le canal officiel du projet.

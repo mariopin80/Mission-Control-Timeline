@@ -1,10 +1,10 @@
-# Registro de verificação — v0.8.1
+# Registro de verificação — v0.8.2
 
 Data: 24/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de 54 testes cobre:
+O conjunto de 57 testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -55,11 +55,14 @@ O conjunto de 54 testes cobre:
 - aceitação de vírgulas, ponto e vírgula, espaços e linhas no editor NORAD;
 - rejeição de duplicatas, nomes e entrada vazia no editor;
 - migração preservativa do cache orbital legado para o AppData.
+- presença de licença, termos de uso e aviso de privacidade nos seis idiomas;
+- rótulos legais localizados em todos os idiomas da interface;
+- geração do documento combinado apresentado pelo instalador.
 
-Resultado: **54/54 aprovados**.
+Resultado: **57/57 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
-Python 3.10. A suíte da v0.8.1 foi executada em **Python 3.12.13**. A base
+Python 3.10. A suíte da v0.8.2 foi executada em **Python 3.12.13**. A base
 anterior também havia sido validada em **Python 3.10.20**, e as novas
 construções permanecem compatíveis com a versão mínima. A dependência de
 `datetime.UTC`, introduzida somente no Python 3.11, continua ausente.

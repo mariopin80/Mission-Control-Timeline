@@ -1,0 +1,60 @@
+MISSION CONTROL TIMELINE — FREEWARE-SOFTWARELIZENZ
+Version 1.0 — 2026
+
+Copyright © 2026 Mario Pin — PU2PTU. Alle Rechte vorbehalten.
+
+1. LIZENZGEWÄHRUNG
+Der Autor gewährt eine kostenlose, nicht ausschließliche und nicht übertragbare
+Lizenz zur Installation und Nutzung von Mission Control Timeline für private,
+pädagogische, experimentelle und amateurfunkbezogene Zwecke.
+
+2. WEITERVERTEILUNG
+Das originale, unveränderte Installationsprogramm darf kostenlos kopiert und
+weitergegeben werden. Verkauf, entgeltlicher Zugang, Neuverpackung oder die
+Verteilung veränderter Kopien sind ohne vorherige schriftliche Genehmigung des
+Autors untersagt.
+
+3. BESCHRÄNKUNGEN
+Soweit nicht gesetzlich ausdrücklich erlaubt, darf die Software nicht
+verändert, angepasst, zurückentwickelt, dekompiliert, unterlizenziert,
+vermietet oder kommerziell verwertet werden. Urhebervermerke dürfen nicht
+entfernt und Name, Logo oder Erscheinungsbild nicht zur Darstellung eines
+anderen Produkts als offiziell oder unterstützt verwendet werden.
+
+4. ORBITALDATEN UND NETZDIENSTE
+Orbitaldaten stammen von unabhängigen Dritten, darunter CelesTrak und SatNOGS.
+Verfügbarkeit, Genauigkeit, Aktualisierung und Fortbestand werden nicht vom
+Autor kontrolliert und können eigenen Bedingungen unterliegen. Vorhersagen
+können durch alte Daten, Uhrzeit, Stationskoordinaten, Horizontmaske,
+Näherungen und Netzfehler beeinflusst werden.
+
+5. BESTIMMUNGSGEMÄSSE NUTZUNG
+Die Software ist eine Planungs- und Amateurfunkhilfe. Sie ist kein
+zertifiziertes Flug-, Navigations-, Sicherheits-, Notfall-, Start-,
+Raumfahrzeugsteuerungs- oder missionskritisches System. Angaben müssen vor
+Aktivitäten mit Bezug zu Sicherheit, Eigentum, Vorschriften oder wertvollen
+Geräten unabhängig geprüft werden.
+
+6. KEINE GEWÄHRLEISTUNG
+Die Software wird „wie besehen“ und „wie verfügbar“ ohne Gewährleistung
+bereitgestellt, soweit gesetzlich zulässig. Dauerbetrieb, fehlerfreie
+Berechnungen, universelle Kompatibilität und Daten Dritter werden nicht
+garantiert.
+
+7. HAFTUNGSBESCHRÄNKUNG
+Soweit gesetzlich zulässig, haftet der Autor nicht für Schäden, Datenverlust,
+verpasste Kontakte, Betriebsunterbrechung oder Geräteschäden. Zwingende Rechte
+und gesetzlich nicht ausschließbare Haftung bleiben unberührt.
+
+8. DRITTKOMPONENTEN
+Mitgelieferte Komponenten behalten ihre jeweiligen Lizenzen und Hinweise.
+Diese Lizenz gilt für die Originalanwendung, ihren Namen, ihre Oberfläche,
+Dokumentation und visuelle Identität.
+
+9. BEENDIGUNG UND RECHT
+Bei wesentlicher Verletzung endet die Lizenz automatisch. Nicht autorisierte
+Kopien dürfen danach nicht weiter genutzt oder verbreitet werden. Es gilt
+brasilianisches Recht, ohne zwingende Rechte des Nutzers einzuschränken.
+
+Installation oder Nutzung der Software bedeutet Annahme dieser Bedingungen.
+

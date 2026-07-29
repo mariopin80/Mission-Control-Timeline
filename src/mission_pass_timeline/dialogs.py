@@ -163,11 +163,7 @@ class SetupDialog(tk.Toplevel):
         self.language_hint.pack(anchor="w")
 
     def _build_about_tab(self) -> None:
-        logo_path = (
-            Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
-            / "assets"
-            / "mission-control-timeline-about.png"
-        )
+        logo_path = self._bundle_root() / "assets" / "mission-control-timeline-about.png"
         self.about_logo_image: tk.PhotoImage | None = None
         try:
             self.about_logo_image = tk.PhotoImage(file=str(logo_path))
@@ -193,6 +189,94 @@ class SetupDialog(tk.Toplevel):
         self.about_developer.pack(anchor="w", pady=3)
         self.about_orbital = ttk.Label(self.about_tab, style="Hint.TLabel")
         self.about_orbital.pack(anchor="w", pady=3)
+        self.about_license_summary = ttk.Label(
+            self.about_tab,
+            style="Hint.TLabel",
+            wraplength=610,
+            justify="left",
+        )
+        self.about_license_summary.pack(anchor="w", pady=(14, 10))
+        legal_buttons = ttk.Frame(self.about_tab)
+        legal_buttons.pack(anchor="w")
+        self.license_button = ttk.Button(
+            legal_buttons, command=lambda: self._open_legal_document("LICENSE")
+        )
+        self.license_button.pack(side="left")
+        self.terms_button = ttk.Button(
+            legal_buttons, command=lambda: self._open_legal_document("TERMS")
+        )
+        self.terms_button.pack(side="left", padx=8)
+        self.privacy_button = ttk.Button(
+            legal_buttons, command=lambda: self._open_legal_document("PRIVACY")
+        )
+        self.privacy_button.pack(side="left")
+
+    @staticmethod
+    def _bundle_root() -> Path:
+        return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+
+    def _open_legal_document(self, document: str) -> None:
+        language = self._selected_language()
+        path = self._bundle_root() / "licenses" / f"{document}-{language}.txt"
+        try:
+            contents = path.read_text(encoding="utf-8")
+        except OSError:
+            messagebox.showerror(
+                "Mission Control Timeline",
+                translate(language, "legal_file_error"),
+                parent=self,
+            )
+            return
+
+        titles = {
+            "LICENSE": "license_button",
+            "TERMS": "terms_button",
+            "PRIVACY": "privacy_button",
+        }
+        viewer = tk.Toplevel(self)
+        viewer.title(
+            f"Mission Control Timeline — {translate(language, titles[document])}"
+        )
+        viewer.geometry("720x560")
+        viewer.minsize(560, 400)
+        viewer.transient(self)
+        viewer.configure(bg="#111820")
+        content = ttk.Frame(viewer, padding=16)
+        content.pack(fill="both", expand=True)
+        text_frame = tk.Frame(
+            content,
+            bg="#29495b",
+            highlightbackground="#29495b",
+            highlightthickness=1,
+        )
+        text_frame.pack(fill="both", expand=True)
+        text = tk.Text(
+            text_frame,
+            wrap="word",
+            bg="#09141d",
+            fg="#dce8ef",
+            selectbackground="#29495b",
+            selectforeground="#ffffff",
+            relief="flat",
+            borderwidth=0,
+            padx=14,
+            pady=12,
+            font=("Segoe UI", 10),
+        )
+        scrollbar = ttk.Scrollbar(
+            text_frame, orient="vertical", command=text.yview
+        )
+        text.configure(yscrollcommand=scrollbar.set)
+        text.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        text.insert("1.0", contents)
+        text.configure(state="disabled")
+        ttk.Button(
+            content,
+            text=translate(language, "close"),
+            command=viewer.destroy,
+        ).pack(anchor="e", pady=(12, 0))
+        viewer.bind("<Escape>", lambda _event: viewer.destroy())
 
     def _selected_language(self) -> str:
         selected_name = self.language_variable.get()
@@ -244,6 +328,10 @@ class SetupDialog(tk.Toplevel):
         self.about_version.configure(text=t("about_version", version=__version__))
         self.about_developer.configure(text=t("about_developer"))
         self.about_orbital.configure(text=t("about_orbital"))
+        self.about_license_summary.configure(text=t("about_license_summary"))
+        self.license_button.configure(text=t("license_button"))
+        self.terms_button.configure(text=t("terms_button"))
+        self.privacy_button.configure(text=t("privacy_button"))
         self.cancel_button.configure(text=t("cancel"))
         self.save_button.configure(text=t("save"))
         self._refresh_count()

@@ -1,0 +1,22 @@
+MISSION CONTROL TIMELINE — AVISO DE PRIVACIDAD
+Versión 1.0 — 2026
+
+Mission Control Timeline no requiere cuenta y no contiene publicidad, análisis,
+seguimiento ni telemetría operada por el autor.
+
+La aplicación guarda localmente la estación, números NORAD, preferencias y
+caché orbital. Estos archivos permanecen en el perfil de Windows del usuario y
+no se envían al autor.
+
+Para actualizar datos orbitales, se realizan consultas a proveedores
+independientes como CelesTrak y SatNOGS. Estos reciben los datos técnicos
+normales de una solicitud de internet, incluidos IP pública, fecha, hora y
+número de catálogo solicitado. Sus políticas y registros están fuera del
+control del autor.
+
+La aplicación no transmite intencionadamente al autor coordenadas, nombre de
+estación ni preferencias. La desinstalación puede conservar los ajustes
+locales para una futura reinstalación; el usuario puede eliminarlos manualmente.
+
+Consultas: contacte al autor mediante el canal oficial del proyecto.
+

@@ -1,0 +1,38 @@
+MISSION CONTROL TIMELINE — CONDITIONS D’UTILISATION
+Version 1.0 — 2026
+
+1. OBJET. Mission Control Timeline aide à visualiser les passages satellitaires
+prévus depuis une station configurée.
+
+2. RESPONSABILITÉ. L’utilisateur est responsable des coordonnées, de
+l’altitude, du masque d’horizon, de l’horloge, des catalogues NORAD et de
+l’interprétation. Les prévisions doivent être vérifiées avant toute opération
+importante.
+
+3. SERVICES TIERS. L’application peut consulter CelesTrak et SatNOGS. Ces
+services indépendants peuvent être indisponibles, changer de format, imposer
+des limites ou fournir des données incomplètes ou anciennes. Leurs propres
+conditions s’appliquent également.
+
+4. USAGE ACCEPTABLE. Il est interdit d’utiliser le logiciel pour surcharger,
+contourner les limites, perturber ou accéder sans autorisation aux services de
+données orbitales, ou pour perturber illégalement satellites, radio ou
+communications.
+
+5. LIMITATION OPÉRATIONNELLE. AOS, LOS, azimut, élévation, distance et comptes à
+rebours sont des estimations. Le logiciel n’est pas certifié pour le vol, la
+navigation, l’urgence, la sécurité, le lancement, la commande spatiale ou les
+opérations critiques.
+
+6. MISES À JOUR. Fonctions, fournisseurs, formats et conditions peuvent
+changer. Une mise à jour peut exiger l’acceptation de conditions révisées.
+L’auteur n’est pas tenu de maintenir toutes les versions indéfiniment.
+
+7. SUSPENSION. L’autorisation d’utilisation peut prendre fin en cas de violation
+substantielle de la licence ou de ces conditions.
+
+8. DROIT. Le droit brésilien s’applique, sans affecter les droits impératifs de
+la juridiction de l’utilisateur.
+
+L’utilisation du logiciel vaut acceptation de ces Conditions.
+

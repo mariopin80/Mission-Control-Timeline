@@ -1,0 +1,60 @@
+MISSION CONTROL TIMELINE — FREEWARE SOFTWARE LICENSE
+Version 1.0 — 2026
+
+Copyright © 2026 Mario Pin — PU2PTU. All rights reserved.
+
+1. LICENSE GRANT
+The author grants the user a free, non-exclusive, non-transferable license to
+install and use Mission Control Timeline for personal, educational,
+experimental and amateur-radio purposes.
+
+2. REDISTRIBUTION
+The original, unmodified installer may be copied and shared free of charge.
+Selling, charging for access to, repackaging or distributing modified copies
+without prior written authorization from the author is prohibited.
+
+3. RESTRICTIONS
+Except where applicable law expressly permits it, the user may not modify,
+adapt, reverse engineer, decompile, sublicense, rent or commercially exploit
+the software; remove authorship or copyright notices; or use the name, logo or
+visual identity in a way that suggests another product is official or endorsed.
+
+4. ORBITAL DATA AND NETWORK SERVICES
+Orbital data is supplied by independent third parties, including CelesTrak and
+SatNOGS. Availability, accuracy, update frequency and continued operation of
+these services are not controlled by the author and may be subject to their
+own terms. Pass predictions can be affected by stale data, clock, station
+coordinates, horizon mask, propagation approximations and network failures.
+
+5. INTENDED USE
+This software is a planning and amateur-radio aid. It is not a certified
+flight, navigation, safety, emergency, launch, spacecraft-command or
+mission-critical system. The user must independently verify information before
+using it in any operation involving safety, property, regulatory compliance or
+valuable equipment.
+
+6. NO WARRANTY
+The software is provided “as is” and “as available”, without warranties of any
+kind, to the maximum extent permitted by law. The author does not guarantee
+continuous operation, error-free calculations, compatibility with every
+computer, or availability of third-party data.
+
+7. LIMITATION OF LIABILITY
+To the maximum extent permitted by law, the author shall not be liable for
+direct or indirect damages, loss of data, missed contacts, loss of operation,
+equipment damage or other losses arising from installation or use. Nothing in
+this license excludes rights or liabilities that cannot legally be excluded.
+
+8. THIRD-PARTY COMPONENTS
+Components distributed with the software retain their respective licenses and
+copyright notices. This license applies to the original Mission Control
+Timeline application, its name, interface, documentation and visual identity.
+
+9. TERMINATION AND LAW
+This license terminates automatically if its terms are materially violated.
+Upon termination, unauthorized copies must no longer be used or distributed.
+This license is governed by Brazilian law, without limiting mandatory rights
+that apply in the user’s jurisdiction.
+
+Installing or using the software indicates acceptance of these terms.
+

@@ -1,0 +1,58 @@
+MISSION CONTROL TIMELINE — LICENCIA DE SOFTWARE FREEWARE
+Versión 1.0 — 2026
+
+Copyright © 2026 Mario Pin — PU2PTU. Todos los derechos reservados.
+
+1. CONCESIÓN
+El autor concede una licencia gratuita, no exclusiva e intransferible para
+instalar y utilizar Mission Control Timeline con fines personales, educativos,
+experimentales y de radioafición.
+
+2. REDISTRIBUCIÓN
+El instalador original y sin modificaciones puede copiarse y compartirse
+gratuitamente. Se prohíbe venderlo, cobrar por el acceso, reempaquetarlo o
+distribuir copias modificadas sin autorización previa y escrita del autor.
+
+3. RESTRICCIONES
+Salvo cuando la ley aplicable lo permita expresamente, no se puede modificar,
+adaptar, realizar ingeniería inversa, descompilar, sublicenciar, alquilar ni
+explotar comercialmente el software; eliminar avisos de autoría; ni utilizar
+el nombre, logotipo o identidad visual para presentar otro producto como
+oficial o respaldado.
+
+4. DATOS ORBITALES Y SERVICIOS DE RED
+Los datos orbitales proceden de terceros independientes, incluidos CelesTrak y
+SatNOGS. Su disponibilidad, precisión, frecuencia de actualización y
+continuidad no dependen del autor y pueden estar sujetas a términos propios.
+Las predicciones pueden verse afectadas por datos antiguos, reloj, coordenadas
+de estación, máscara del horizonte, aproximaciones y fallos de red.
+
+5. USO PREVISTO
+El software es una ayuda para planificación y radioafición. No es un sistema
+certificado de vuelo, navegación, seguridad, emergencia, lanzamiento, mando de
+naves espaciales ni operaciones críticas. El usuario debe verificar la
+información antes de usarla en actividades relacionadas con seguridad, bienes,
+normativa o equipos de valor.
+
+6. SIN GARANTÍA
+El software se suministra “tal cual” y “según disponibilidad”, sin garantías,
+en la máxima medida permitida por la ley. No se garantiza funcionamiento
+continuo, cálculos sin errores, compatibilidad universal ni datos de terceros.
+
+7. LIMITACIÓN DE RESPONSABILIDAD
+En la máxima medida permitida por la ley, el autor no responderá por daños,
+pérdida de datos, contactos perdidos, interrupciones o daños en equipos. No se
+excluyen derechos o responsabilidades que legalmente no puedan excluirse.
+
+8. COMPONENTES DE TERCEROS
+Los componentes incluidos conservan sus licencias y avisos. Esta licencia se
+aplica a la aplicación original, su nombre, interfaz, documentación e identidad
+visual.
+
+9. TERMINACIÓN Y LEY
+La licencia termina automáticamente ante una infracción material. Las copias no
+autorizadas deberán dejar de utilizarse o distribuirse. Se aplica la legislación
+brasileña, sin limitar derechos obligatorios de la jurisdicción del usuario.
+
+La instalación o uso del software indica la aceptación de estos términos.
+

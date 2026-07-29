@@ -1,0 +1,127 @@
+MISSION CONTROL TIMELINE — LICENÇA DE SOFTWARE FREEWARE
+Versão 1.0 — 2026
+
+Copyright © 2026 Mario Pin — PU2PTU. Todos os direitos reservados.
+
+1. CONCESSÃO DA LICENÇA
+O autor concede ao usuário uma licença gratuita, não exclusiva e
+intransferível para instalar e utilizar o Mission Control Timeline para fins
+pessoais, educacionais, experimentais e de radioamadorismo.
+
+2. REDISTRIBUIÇÃO
+O instalador original e não modificado pode ser copiado e compartilhado
+gratuitamente. É proibido vender, cobrar pelo acesso, reempacotar ou distribuir
+cópias modificadas sem autorização prévia e por escrito do autor.
+
+3. RESTRIÇÕES
+Salvo quando a legislação aplicável permitir expressamente, o usuário não pode
+modificar, adaptar, realizar engenharia reversa, descompilar, sublicenciar,
+alugar ou explorar comercialmente o software; remover avisos de autoria ou
+direitos autorais; nem utilizar o nome, logo ou identidade visual de modo que
+outro produto pareça oficial ou endossado.
+
+4. DADOS ORBITAIS E SERVIÇOS DE REDE
+Os dados orbitais são fornecidos por terceiros independentes, incluindo
+CelesTrak e SatNOGS. Disponibilidade, exatidão, frequência de atualização e
+continuidade desses serviços não são controladas pelo autor e podem estar
+sujeitas a termos próprios. As previsões podem ser afetadas por dados antigos,
+relógio, coordenadas da estação, máscara do horizonte, aproximações de
+propagação e falhas de rede.
+
+5. USO PRETENDIDO
+Este software é uma ferramenta auxiliar de planejamento e radioamadorismo. Não
+é um sistema certificado de voo, navegação, segurança, emergência, lançamento,
+comando de espaçonaves ou operação crítica de missão. O usuário deve verificar
+independentemente as informações antes de utilizá-las em atividades envolvendo
+segurança, patrimônio, conformidade regulatória ou equipamentos de valor.
+
+6. AUSÊNCIA DE GARANTIA
+O software é fornecido “no estado em que se encontra” e “conforme disponível”,
+sem garantias de qualquer natureza, no limite permitido por lei. O autor não
+garante operação contínua, cálculos sem erros, compatibilidade com todo
+computador ou disponibilidade de dados de terceiros.
+
+7. LIMITAÇÃO DE RESPONSABILIDADE
+No limite permitido por lei, o autor não será responsável por danos diretos ou
+indiretos, perda de dados, contatos perdidos, interrupção de operação, danos a
+equipamentos ou outras perdas decorrentes da instalação ou uso. Esta licença
+não exclui direitos ou responsabilidades que legalmente não possam ser
+excluídos.
+
+8. COMPONENTES DE TERCEIROS
+Os componentes distribuídos com o software conservam suas respectivas licenças
+e avisos de direitos autorais. Esta licença se aplica ao aplicativo original
+Mission Control Timeline, seu nome, interface, documentação e identidade
+visual.
+
+9. ENCERRAMENTO E LEGISLAÇÃO
+Esta licença será encerrada automaticamente em caso de violação material de
+seus termos. Com o encerramento, cópias não autorizadas não poderão continuar
+sendo usadas ou distribuídas. Aplica-se a legislação brasileira, sem limitar
+direitos obrigatórios vigentes na jurisdição do usuário.
+
+A instalação ou utilização do software indica aceitação destes termos.
+
+========================================================================
+
+MISSION CONTROL TIMELINE — TERMOS DE USO
+Versão 1.0 — 2026
+
+1. FINALIDADE. O Mission Control Timeline é uma ferramenta auxiliar para
+visualizar passagens previstas de satélites a partir de uma estação configurada.
+
+2. RESPONSABILIDADE DO USUÁRIO. O usuário é responsável pelas coordenadas,
+altitude, máscara do horizonte, relógio do sistema, catálogos NORAD selecionados
+e interpretação dos resultados. As previsões devem ser verificadas
+independentemente antes de operações relevantes.
+
+3. SERVIÇOS DE TERCEIROS. O aplicativo pode consultar dados orbitais do
+CelesTrak e SatNOGS. Esses serviços independentes podem ficar indisponíveis,
+alterar formatos, impor limites ou fornecer informações incompletas ou antigas.
+Seus respectivos termos e políticas também se aplicam.
+
+4. USO ACEITÁVEL. É proibido usar o software para sobrecarregar, contornar
+limites, interferir ou obter acesso não autorizado aos serviços de dados
+orbitais. Também é proibido utilizá-lo ilegalmente ou para interferir em
+satélites, serviços de rádio ou comunicações.
+
+5. LIMITAÇÃO OPERACIONAL. AOS, LOS, azimute, elevação, distância e contagens
+regressivas são estimativas. O software não é certificado para voo, navegação,
+emergência, segurança, lançamento, comando de espaçonaves ou operações críticas.
+
+6. ATUALIZAÇÕES. Recursos, fornecedores, formatos e estes termos podem mudar em
+versões futuras. Uma atualização poderá exigir aceite de termos revisados. O
+autor não é obrigado a manter ou suportar indefinidamente todas as versões.
+
+7. SUSPENSÃO. A permissão de uso poderá ser encerrada em caso de violação
+material da licença ou destes termos.
+
+8. LEGISLAÇÃO. Aplica-se a legislação brasileira, preservados os direitos
+obrigatórios vigentes na jurisdição do usuário.
+
+O uso do software indica aceitação destes Termos de Uso.
+
+========================================================================
+
+MISSION CONTROL TIMELINE — AVISO DE PRIVACIDADE
+Versão 1.0 — 2026
+
+O Mission Control Timeline não exige conta e não contém publicidade, análise de
+uso, rastreamento ou telemetria operada pelo autor.
+
+O aplicativo armazena localmente as configurações da estação, números NORAD,
+preferências e cache orbital. Esses arquivos permanecem no perfil do usuário
+do Windows e não são enviados ao autor.
+
+Para atualizar dados orbitais, o aplicativo realiza consultas a fornecedores
+independentes, como CelesTrak e SatNOGS. Esses fornecedores recebem os dados
+técnicos normalmente presentes numa solicitação de internet, incluindo
+endereço IP público, data, horário e número de catálogo consultado. Suas
+políticas de privacidade e registros estão fora do controle do autor.
+
+O aplicativo não transmite intencionalmente ao autor as coordenadas ou nome da
+estação, nem preferências de som ou idioma. A desinstalação pode preservar as
+configurações na pasta local de dados para reutilização após reinstalação; o
+usuário pode excluir essa pasta manualmente.
+
+Dúvidas: contate o autor pelo canal oficial de distribuição do projeto.

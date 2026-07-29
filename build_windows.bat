@@ -2,6 +2,9 @@
 setlocal
 cd /d "%~dp0"
 
+py -3 tools\build_legal_files.py
+if errorlevel 1 goto :error
+
 if not exist ".venv-build\Scripts\python.exe" (
     echo Criando ambiente de compilacao...
     py -3 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)"
@@ -29,6 +32,7 @@ echo Gerando distribuicao em pasta...
     --collect-all sgp4 ^
     --add-data "assets\mission-control-timeline.ico;assets" ^
     --add-data "assets\mission-control-timeline-about.png;assets" ^
+    --add-data "licenses;licenses" ^
     --icon assets\mission-control-timeline.ico ^
     --version-file packaging\windows_version_info.txt ^
     src\main.py
@@ -49,7 +53,7 @@ if defined ISCC (
     if errorlevel 1 goto :error
     echo.
     echo Instalador concluido:
-    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.8.1.exe
+    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.8.2.exe
 ) else (
     echo.
     echo Inno Setup 6 nao encontrado. A pasta do aplicativo foi gerada normalmente.
