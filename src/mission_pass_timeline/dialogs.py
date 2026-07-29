@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import sys
 import tkinter as tk
+from pathlib import Path
 from tkinter import messagebox, ttk
 from typing import Callable
 
@@ -161,6 +163,21 @@ class SetupDialog(tk.Toplevel):
         self.language_hint.pack(anchor="w")
 
     def _build_about_tab(self) -> None:
+        logo_path = (
+            Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+            / "assets"
+            / "mission-control-timeline-about.png"
+        )
+        self.about_logo_image: tk.PhotoImage | None = None
+        try:
+            self.about_logo_image = tk.PhotoImage(file=str(logo_path))
+        except tk.TclError:
+            pass
+        if self.about_logo_image is not None:
+            ttk.Label(
+                self.about_tab,
+                image=self.about_logo_image,
+            ).pack(anchor="w", pady=(0, 14))
         ttk.Label(
             self.about_tab,
             text="MISSION CONTROL TIMELINE",
