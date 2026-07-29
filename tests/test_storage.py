@@ -101,6 +101,49 @@ class SettingsStoreTests(unittest.TestCase):
             self.assertEqual(store.cache_path.parent, root / "settings")
             self.assertTrue(legacy.exists())
 
+    def test_relocate_copies_existing_data_and_keeps_source_backup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = SettingsStore(root / "source", root / "source")
+            station = Station("PU2PTU", -23.1, -47.7, 550.0, 8.0)
+            source.save_station(station)
+            source.save_catalog_text("25544\n")
+            source.save_orbital_cache(
+                [{"NORAD_CAT_ID": "25544"}],
+                datetime(2026, 7, 17, tzinfo=timezone.utc),
+            )
+
+            relocated = source.relocate(root / "destination", copy_existing=True)
+
+            self.assertEqual(relocated.load_station(), station)
+            self.assertEqual(relocated.load_catalog_text(), "25544\n")
+            self.assertEqual(
+                relocated.load_orbital_cache()["satellites"],
+                [{"NORAD_CAT_ID": "25544"}],
+            )
+            self.assertTrue(source.config_path.exists())
+            self.assertTrue(source.catalog_path.exists())
+            self.assertTrue(source.cache_path.exists())
+
+    def test_relocate_can_start_without_copying_previous_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = SettingsStore(root / "source", root / "source")
+            source.save_catalog_text("25544\n")
+            relocated = source.relocate(
+                root / "destination",
+                copy_existing=False,
+            )
+            self.assertIsNone(relocated.load_catalog_text())
+            self.assertEqual(relocated.load_orbital_cache(), {})
+
+    def test_directory_validation_creates_and_accepts_writable_folder(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "new" / "data"
+            resolved = SettingsStore.validate_directory(target)
+            self.assertTrue(resolved.is_dir())
+            self.assertEqual(resolved, target.resolve())
+
 
 if __name__ == "__main__":
     unittest.main()

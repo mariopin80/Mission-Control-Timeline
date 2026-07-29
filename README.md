@@ -4,8 +4,12 @@ Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que os satélites de uma lista de números
 NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.8.3
+## Versão 0.9.0
 
+- escolha da pasta de dados durante a instalação, mantendo AppData como padrão;
+- nova aba de armazenamento no Setup, com seleção e abertura da pasta;
+- cópia segura das configurações, lista NORAD e cache orbital ao mudar o local;
+- caminho personalizado preservado no Registro do Windows;
 - aba Sobre reorganizada para manter os acessos à licença, termos e privacidade
   sempre visíveis ao lado do logo;
 - licença freeware, termos de uso e aviso de privacidade em seis idiomas;
@@ -137,7 +141,7 @@ abertura.
 Se o **Inno Setup 6** estiver instalado, o mesmo script também criará:
 
 ```text
-dist-installer\MissionControlTimeline_Setup_0.8.3.exe
+dist-installer\MissionControlTimeline_Setup_0.9.0.exe
 ```
 
 O instalador é por usuário, não solicita privilégios administrativos e cria

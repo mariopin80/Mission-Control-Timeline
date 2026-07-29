@@ -537,16 +537,34 @@ class MissionPassApp:
             self.station,
             list(self.catalogs),
             self.language,
+            self.store.directory,
             self._save_setup,
         )
 
     def _save_setup(
-        self, station: Station, catalogs: list[int], language: str
+        self,
+        station: Station,
+        catalogs: list[int],
+        language: str,
+        data_directory: Path,
+        copy_existing_data: bool,
     ) -> None:
         station_changed = station != self.station
         catalogs_changed = catalogs != self.catalogs
         language_changed = language != self.language
+        storage_changed = data_directory.resolve() != self.store.directory.resolve()
 
+        if storage_changed:
+            self.store = self.store.relocate(
+                data_directory,
+                copy_existing=copy_existing_data,
+            )
+            self.store.save_timeline_hours(self.timeline_hours)
+            self.store.save_sound_enabled(self.sound_enabled)
+            if self.catalogs and not catalogs_changed:
+                self.store.save_catalog_text(
+                    "\n".join(str(value) for value in self.catalogs) + "\n"
+                )
         self.station = station
         self.store.save_station(station)
         self.language = language

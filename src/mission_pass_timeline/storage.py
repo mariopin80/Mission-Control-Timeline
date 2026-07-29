@@ -4,19 +4,53 @@ import json
 import os
 import shutil
 import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
 from .i18n import DEFAULT_LANGUAGE, LANGUAGES
 from .models import Station
 
+REGISTRY_KEY = r"Software\Mario Pin\Mission Control Timeline"
+REGISTRY_VALUE = "DataDirectory"
 
-def application_data_dir() -> Path:
+
+def default_application_data_dir() -> Path:
     if os.name == "nt":
         root = Path(os.environ.get("LOCALAPPDATA", Path.home()))
     else:
         root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-    path = root / "MissionControlTimeline"
+    return root / "MissionControlTimeline"
+
+
+def configured_data_dir() -> Path | None:
+    if os.name != "nt":
+        return None
+    try:
+        import winreg
+
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY) as key:
+            value, _kind = winreg.QueryValueEx(key, REGISTRY_VALUE)
+        if isinstance(value, str) and value.strip():
+            return Path(os.path.expandvars(value.strip())).expanduser()
+    except (ImportError, OSError):
+        pass
+    return None
+
+
+def set_configured_data_dir(path: Path) -> None:
+    if os.name != "nt":
+        return
+    import winreg
+
+    with winreg.CreateKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY) as key:
+        winreg.SetValueEx(key, REGISTRY_VALUE, 0, winreg.REG_SZ, str(path))
+
+
+def application_data_dir() -> Path:
+    default_path = default_application_data_dir()
+    root = default_path.parent
+    path = configured_data_dir() or default_path
     legacy_path = root / "MissionPassTimeline"
     if not path.exists() and legacy_path.exists():
         try:
@@ -56,6 +90,34 @@ class SettingsStore:
             self._migrate_legacy_cache(
                 legacy_cache_path or program_dir() / "orbital_cache.json"
             )
+
+    @staticmethod
+    def validate_directory(directory: Path) -> Path:
+        directory = directory.expanduser().resolve()
+        directory.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            prefix=".mission-control-write-test-",
+            dir=directory,
+        ):
+            pass
+        return directory
+
+    def relocate(self, directory: Path, copy_existing: bool = True) -> "SettingsStore":
+        destination = self.validate_directory(directory)
+        if destination == self.directory.resolve():
+            return self
+
+        if copy_existing:
+            for source in (self.config_path, self.catalog_path, self.cache_path):
+                if not source.is_file():
+                    continue
+                target = destination / source.name
+                temporary = target.with_suffix(target.suffix + ".tmp")
+                shutil.copy2(source, temporary)
+                temporary.replace(target)
+
+        set_configured_data_dir(destination)
+        return SettingsStore(directory=destination, cache_directory=destination)
 
     def _migrate_legacy_cache(self, legacy_path: Path) -> None:
         if self.cache_path.exists() or legacy_path == self.cache_path:

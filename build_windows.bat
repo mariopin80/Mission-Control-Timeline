@@ -53,7 +53,7 @@ if defined ISCC (
     if errorlevel 1 goto :error
     echo.
     echo Instalador concluido:
-    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.8.3.exe
+    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.9.0.exe
 ) else (
     echo.
     echo Inno Setup 6 nao encontrado. A pasta do aplicativo foi gerada normalmente.

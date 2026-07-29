@@ -3,15 +3,16 @@ from __future__ import annotations
 import sys
 import tkinter as tk
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 from typing import Callable
 
 from . import __version__
 from .i18n import LANGUAGES, translate
 from .models import Station
 from .orbital_data import CatalogListError, parse_catalog_entry
+from .storage import SettingsStore
 
-SetupSaveHandler = Callable[[Station, list[int], str], None]
+SetupSaveHandler = Callable[[Station, list[int], str, Path, bool], None]
 
 
 class SetupDialog(tk.Toplevel):
@@ -21,6 +22,7 @@ class SetupDialog(tk.Toplevel):
         station: Station,
         catalogs: list[int],
         language: str,
+        data_directory: Path,
         on_save: SetupSaveHandler,
     ):
         super().__init__(parent)
@@ -40,6 +42,8 @@ class SetupDialog(tk.Toplevel):
             "mask": tk.StringVar(value=f"{station.min_elevation_deg:.1f}"),
         }
         self.language_variable = tk.StringVar(value=LANGUAGES[self.language])
+        self.data_directory_variable = tk.StringVar(value=str(data_directory))
+        self.copy_existing_data_variable = tk.BooleanVar(value=True)
 
         content = ttk.Frame(self, padding=18)
         content.grid(row=0, column=0, sticky="nsew")
@@ -53,10 +57,12 @@ class SetupDialog(tk.Toplevel):
         self.satellites_tab = ttk.Frame(self.notebook, padding=18)
         self.station_tab = ttk.Frame(self.notebook, padding=18)
         self.language_tab = ttk.Frame(self.notebook, padding=18)
+        self.storage_tab = ttk.Frame(self.notebook, padding=18)
         self.about_tab = ttk.Frame(self.notebook, padding=18)
         self._build_satellites_tab(catalogs)
         self._build_station_tab()
         self._build_language_tab()
+        self._build_storage_tab()
         self._build_about_tab()
 
         footer = ttk.Frame(content)
@@ -161,6 +167,78 @@ class SetupDialog(tk.Toplevel):
             justify="left",
         )
         self.language_hint.pack(anchor="w")
+
+    def _build_storage_tab(self) -> None:
+        self.storage_title = ttk.Label(
+            self.storage_tab, style="Title.TLabel"
+        )
+        self.storage_title.grid(row=0, column=0, columnspan=3, sticky="w")
+        self.storage_hint = ttk.Label(
+            self.storage_tab,
+            style="Hint.TLabel",
+            wraplength=620,
+            justify="left",
+        )
+        self.storage_hint.grid(
+            row=1, column=0, columnspan=3, sticky="ew", pady=(7, 22)
+        )
+        self.storage_path_label = ttk.Label(self.storage_tab)
+        self.storage_path_label.grid(row=2, column=0, columnspan=3, sticky="w")
+        self.storage_entry = ttk.Entry(
+            self.storage_tab,
+            textvariable=self.data_directory_variable,
+        )
+        self.storage_entry.grid(
+            row=3, column=0, sticky="ew", pady=(8, 12), padx=(0, 8)
+        )
+        self.browse_button = ttk.Button(
+            self.storage_tab, command=self._browse_data_directory
+        )
+        self.browse_button.grid(row=3, column=1, sticky="ew", pady=(8, 12))
+        self.open_folder_button = ttk.Button(
+            self.storage_tab, command=self._open_data_directory
+        )
+        self.open_folder_button.grid(
+            row=3, column=2, sticky="ew", padx=(8, 0), pady=(8, 12)
+        )
+        self.copy_existing_checkbox = ttk.Checkbutton(
+            self.storage_tab,
+            variable=self.copy_existing_data_variable,
+        )
+        self.copy_existing_checkbox.grid(
+            row=4, column=0, columnspan=3, sticky="w", pady=(8, 0)
+        )
+        self.storage_tab.columnconfigure(0, weight=1)
+
+    def _browse_data_directory(self) -> None:
+        selected = filedialog.askdirectory(
+            parent=self,
+            initialdir=self.data_directory_variable.get() or None,
+            mustexist=False,
+        )
+        if selected:
+            self.data_directory_variable.set(selected)
+
+    def _open_data_directory(self) -> None:
+        language = self._selected_language()
+        try:
+            directory = SettingsStore.validate_directory(
+                Path(self.data_directory_variable.get())
+            )
+            if sys.platform == "win32":
+                import os
+
+                os.startfile(str(directory))  # type: ignore[attr-defined]
+            else:
+                import subprocess
+
+                subprocess.Popen(["xdg-open", str(directory)])
+        except (OSError, ValueError):
+            messagebox.showerror(
+                "Mission Control Timeline",
+                translate(language, "storage_error"),
+                parent=self,
+            )
 
     def _build_about_tab(self) -> None:
         self.about_tab.columnconfigure(1, weight=1)
@@ -300,6 +378,7 @@ class SetupDialog(tk.Toplevel):
             (self.satellites_tab, "tab_satellites"),
             (self.station_tab, "tab_station"),
             (self.language_tab, "tab_language"),
+            (self.storage_tab, "tab_storage"),
             (self.about_tab, "tab_about"),
         )
         for tab, key in tabs:
@@ -328,6 +407,12 @@ class SetupDialog(tk.Toplevel):
             self.station_hints[key].configure(text=t(hints[key]))
         self.language_title.configure(text=t("language_title"))
         self.language_hint.configure(text=t("language_hint"))
+        self.storage_title.configure(text=t("storage_title"))
+        self.storage_path_label.configure(text=t("storage_path"))
+        self.storage_hint.configure(text=t("storage_hint"))
+        self.browse_button.configure(text=t("browse"))
+        self.open_folder_button.configure(text=t("open_folder"))
+        self.copy_existing_checkbox.configure(text=t("copy_existing_data"))
         self.about_description.configure(text=t("about_description"))
         self.about_version.configure(text=t("about_version", version=__version__))
         self.about_developer.configure(text=t("about_developer"))
@@ -385,5 +470,22 @@ class SetupDialog(tk.Toplevel):
                 translate(language, "invalid_station"), str(exc), parent=self
             )
             return
-        self._on_save(station, catalogs, language)
+        try:
+            data_directory = SettingsStore.validate_directory(
+                Path(self.data_directory_variable.get())
+            )
+            self._on_save(
+                station,
+                catalogs,
+                language,
+                data_directory,
+                self.copy_existing_data_variable.get(),
+            )
+        except (OSError, ValueError):
+            messagebox.showerror(
+                "Mission Control Timeline",
+                translate(language, "storage_error"),
+                parent=self,
+            )
+            return
         self.destroy()

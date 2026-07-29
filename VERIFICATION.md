@@ -1,10 +1,10 @@
-# Registro de verificação — v0.8.3
+# Registro de verificação — v0.9.0
 
 Data: 24/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de 57 testes cobre:
+O conjunto de 60 testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -58,11 +58,14 @@ O conjunto de 57 testes cobre:
 - presença de licença, termos de uso e aviso de privacidade nos seis idiomas;
 - rótulos legais localizados em todos os idiomas da interface;
 - geração do documento combinado apresentado pelo instalador.
+- validação e criação de pasta personalizada gravável;
+- cópia atômica dos dados para um novo local com preservação do original;
+- inicialização de um novo local sem importar o cache anterior.
 
-Resultado: **57/57 aprovados**.
+Resultado: **60/60 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
-Python 3.10. A suíte da v0.8.3 foi executada em **Python 3.12.13**. A base
+Python 3.10. A suíte da v0.9.0 foi executada em **Python 3.12.13**. A base
 anterior também havia sido validada em **Python 3.10.20**, e as novas
 construções permanecem compatíveis com a versão mínima. A dependência de
 `datetime.UTC`, introduzida somente no Python 3.11, continua ausente.
