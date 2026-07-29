@@ -33,13 +33,31 @@ class SettingsStore:
     DEFAULT_SOUND_ENABLED = True
 
     def __init__(
-        self, directory: Path | None = None, cache_directory: Path | None = None
+        self,
+        directory: Path | None = None,
+        cache_directory: Path | None = None,
+        legacy_cache_path: Path | None = None,
     ):
         self.directory = directory or application_data_dir()
         self.directory.mkdir(parents=True, exist_ok=True)
         self.config_path = self.directory / "config.json"
         self.catalog_path = self.directory / "satellites.txt"
-        self.cache_path = (cache_directory or program_dir()) / "orbital_cache.json"
+        self.cache_path = (cache_directory or self.directory) / "orbital_cache.json"
+        if cache_directory is None:
+            self._migrate_legacy_cache(
+                legacy_cache_path or program_dir() / "orbital_cache.json"
+            )
+
+    def _migrate_legacy_cache(self, legacy_path: Path) -> None:
+        if self.cache_path.exists() or legacy_path == self.cache_path:
+            return
+        try:
+            payload = legacy_path.read_bytes()
+            temporary = self.cache_path.with_suffix(".tmp")
+            temporary.write_bytes(payload)
+            temporary.replace(self.cache_path)
+        except (FileNotFoundError, OSError):
+            pass
 
     def _load_document(self) -> dict[str, object]:
         if not self.config_path.exists():

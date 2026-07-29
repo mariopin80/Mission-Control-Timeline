@@ -13,6 +13,7 @@ from mission_pass_timeline.orbital_data import (
     decode_celestrak_response,
     decode_satnogs_response,
     download_catalogs,
+    parse_catalog_entry,
     parse_catalog_numbers,
     satellite_from_omm,
     satellites_from_cache,
@@ -57,6 +58,22 @@ class CatalogListTests(unittest.TestCase):
     def test_rejects_names_and_tle_lines(self):
         with self.assertRaises(CatalogListError):
             parse_catalog_numbers("ISS\n")
+
+    def test_editor_accepts_commas_spaces_semicolons_and_lines(self):
+        self.assertEqual(
+            parse_catalog_entry("25544, 33591; 27607\n43017"),
+            [25544, 33591, 27607, 43017],
+        )
+
+    def test_editor_rejects_duplicate_catalogs(self):
+        with self.assertRaises(CatalogListError):
+            parse_catalog_entry("25544, 25544")
+
+    def test_editor_rejects_names_and_empty_input(self):
+        with self.assertRaises(CatalogListError):
+            parse_catalog_entry("ISS, 25544")
+        with self.assertRaises(CatalogListError):
+            parse_catalog_entry("  ")
 
     def test_fresh_cache_avoids_duplicate_downloads(self):
         now = datetime(2026, 7, 17, 18, tzinfo=timezone.utc)

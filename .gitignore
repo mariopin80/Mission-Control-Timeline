@@ -4,6 +4,7 @@ __pycache__/
 .venv-build/
 build/
 dist/
+dist-installer/
 *.spec
 .coverage
 .ruff_cache/

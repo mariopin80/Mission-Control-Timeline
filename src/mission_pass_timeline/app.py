@@ -8,11 +8,10 @@ import threading
 import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import ttk
 
 from . import __version__
-from .dialogs import StationDialog
+from .dialogs import CatalogListDialog, StationDialog
 from .models import PassWindow, Satellite, Station
 from .orbital_data import (
     CatalogListError,
@@ -449,8 +448,8 @@ class MissionPassApp:
         text = self.store.load_catalog_text()
         if text is None:
             self.timeline.show_message(
-                "Importe uma lista de números NORAD",
-                "Informe um catálogo por linha e depois confira as coordenadas da estação.",
+                "Cadastre os satélites",
+                "Use Lista NORAD, informe os catálogos desejados e confira a estação.",
             )
             return
         try:
@@ -458,40 +457,26 @@ class MissionPassApp:
         except CatalogListError:
             self.timeline.show_message(
                 "Não foi possível abrir a lista salva",
-                "Importe novamente um TXT com um número NORAD por linha.",
+                "Abra Lista NORAD e salve novamente os números dos satélites.",
             )
             return
         self._load_cached_satellites()
         self.update_orbital_data()
 
     def import_catalogs(self) -> None:
-        filename = filedialog.askopenfilename(
-            parent=self.root,
-            title="Importar lista de números NORAD",
-            filetypes=[
-                ("Lista NORAD", "*.txt"),
-                ("Todos os arquivos", "*.*"),
-            ],
-        )
-        if not filename:
-            return
-        try:
-            text = Path(filename).read_text(encoding="utf-8-sig")
-            catalogs = parse_catalog_numbers(text)
-        except UnicodeDecodeError:
-            try:
-                text = Path(filename).read_text(encoding="latin-1")
-                catalogs = parse_catalog_numbers(text)
-            except (OSError, CatalogListError, UnicodeDecodeError) as exc:
-                messagebox.showerror("Falha ao importar", str(exc), parent=self.root)
-                return
-        except (OSError, CatalogListError) as exc:
-            messagebox.showerror("Falha ao importar", str(exc), parent=self.root)
-            return
+        CatalogListDialog(self.root, list(self.catalogs), self._save_catalogs)
 
+    def _save_catalogs(self, catalogs: list[int]) -> None:
         self.catalogs = catalogs
         self.satellites = []
+        self._calculation_id += 1
+        self._calculation_in_progress = False
+        self._display_ready = False
+        self._pass_results = {}
+        self._visible_pass_total = 0
+        self._calculation_error_count = 0
         self._live_propagators.clear()
+        self._close_pass_popup()
         self.store.save_catalog_text("\n".join(str(value) for value in catalogs) + "\n")
         self._load_cached_satellites()
         self.update_orbital_data()

@@ -5,6 +5,125 @@ from tkinter import messagebox, ttk
 from typing import Callable
 
 from .models import Station
+from .orbital_data import CatalogListError, parse_catalog_entry
+
+
+class CatalogListDialog(tk.Toplevel):
+    def __init__(
+        self,
+        parent: tk.Misc,
+        catalogs: list[int],
+        on_save: Callable[[list[int]], None],
+    ):
+        super().__init__(parent)
+        self.title("Lista de satélites — números NORAD")
+        self.geometry("650x410")
+        self.minsize(520, 340)
+        self.transient(parent)
+        self.grab_set()
+        self.configure(bg="#111820")
+        self._on_save = on_save
+
+        content = ttk.Frame(self, padding=22)
+        content.pack(fill="both", expand=True)
+        ttk.Label(
+            content,
+            text="SATÉLITES RASTREADOS",
+            style="Title.TLabel",
+        ).pack(anchor="w")
+        ttk.Label(
+            content,
+            text=(
+                "Informe os números de catálogo NORAD separados por vírgulas, "
+                "espaços ou linhas. Exemplo: 25544, 33591, 27607"
+            ),
+            style="Hint.TLabel",
+            wraplength=590,
+            justify="left",
+        ).pack(anchor="w", pady=(5, 14))
+
+        editor_frame = tk.Frame(
+            content,
+            bg="#29495b",
+            highlightbackground="#29495b",
+            highlightthickness=1,
+        )
+        editor_frame.pack(fill="both", expand=True)
+        self.editor = tk.Text(
+            editor_frame,
+            wrap="word",
+            undo=True,
+            bg="#09141d",
+            fg="#e8f1f5",
+            insertbackground="#ffffff",
+            selectbackground="#29495b",
+            selectforeground="#ffffff",
+            relief="flat",
+            borderwidth=0,
+            padx=12,
+            pady=11,
+            font=("Consolas", 11),
+        )
+        scrollbar = ttk.Scrollbar(
+            editor_frame, orient="vertical", command=self.editor.yview
+        )
+        self.editor.configure(yscrollcommand=scrollbar.set)
+        self.editor.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        self.editor.insert("1.0", ", ".join(str(value) for value in catalogs))
+        self.editor.bind("<<Modified>>", self._editor_modified)
+        self.editor.edit_modified(False)
+
+        footer = ttk.Frame(content)
+        footer.pack(fill="x", pady=(13, 0))
+        self.count_label = ttk.Label(footer, style="Hint.TLabel")
+        self.count_label.pack(side="left")
+        buttons = ttk.Frame(footer)
+        buttons.pack(side="right")
+        ttk.Button(buttons, text="Cancelar", command=self.destroy).pack(
+            side="left", padx=(0, 8)
+        )
+        ttk.Button(
+            buttons,
+            text="Salvar lista",
+            style="Accent.TButton",
+            command=self._save,
+        ).pack(side="left")
+
+        self.bind("<Escape>", lambda _event: self.destroy())
+        self.bind("<Control-Return>", lambda _event: self._save())
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.update_idletasks()
+        x = parent.winfo_rootx() + (parent.winfo_width() - self.winfo_width()) // 2
+        y = parent.winfo_rooty() + (parent.winfo_height() - self.winfo_height()) // 2
+        self.geometry(f"+{max(x, 0)}+{max(y, 0)}")
+        self._refresh_count()
+        self.editor.focus_set()
+
+    def _editor_modified(self, _event: tk.Event | None = None) -> None:
+        if not self.editor.edit_modified():
+            return
+        self.editor.edit_modified(False)
+        self._refresh_count()
+
+    def _refresh_count(self) -> None:
+        try:
+            count = len(parse_catalog_entry(self.editor.get("1.0", "end-1c")))
+            text = f"{count} satélite{'s' if count != 1 else ''} na lista"
+            color = "#7be3aa"
+        except CatalogListError:
+            text = "Lista aguardando dados válidos"
+            color = "#78909c"
+        self.count_label.configure(text=text, foreground=color)
+
+    def _save(self) -> None:
+        try:
+            catalogs = parse_catalog_entry(self.editor.get("1.0", "end-1c"))
+        except CatalogListError as exc:
+            messagebox.showerror("Lista NORAD inválida", str(exc), parent=self)
+            return
+        self._on_save(catalogs)
+        self.destroy()
 
 
 class StationDialog(tk.Toplevel):

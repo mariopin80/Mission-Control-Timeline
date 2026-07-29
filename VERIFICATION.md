@@ -1,10 +1,10 @@
-# Registro de verificação — v0.6.0
+# Registro de verificação — v0.7.0
 
 Data: 24/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de 48 testes cobre:
+O conjunto de 52 testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -50,11 +50,14 @@ O conjunto de 48 testes cobre:
 - reinicialização segura dos alertas para a passagem seguinte;
 - som habilitado por padrão e persistência da opção de silenciamento;
 - recuperação segura para o padrão ativo quando a configuração é inválida.
+- aceitação de vírgulas, ponto e vírgula, espaços e linhas no editor NORAD;
+- rejeição de duplicatas, nomes e entrada vazia no editor;
+- migração preservativa do cache orbital legado para o AppData.
 
-Resultado: **48/48 aprovados**.
+Resultado: **52/52 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
-Python 3.10. A suíte da v0.6.0 foi executada em **Python 3.12.13**. A base
+Python 3.10. A suíte da v0.7.0 foi executada em **Python 3.12.13**. A base
 anterior também havia sido validada em **Python 3.10.20**, e as novas
 construções permanecem compatíveis com a versão mínima. A dependência de
 `datetime.UTC`, introduzida somente no Python 3.11, continua ausente.
@@ -76,6 +79,7 @@ e são pequenas para a finalidade de planejamento de passagens.
 
 ## Empacotamento
 
-O projeto foi empacotado com sucesso em um teste de fumaça usando PyInstaller
-6.21. O arquivo `build_windows.bat` executa o fluxo equivalente em Windows e
-produz o executável independente da instalação local de Python.
+O projeto foi empacotado com sucesso em um teste de fumaça `onedir` usando
+PyInstaller 6.21. O arquivo `build_windows.bat` executa o fluxo equivalente em
+Windows, incorpora os metadados de versão e, quando o Inno Setup 6 está
+disponível, gera também o instalador por usuário.

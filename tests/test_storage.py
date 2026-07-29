@@ -69,6 +69,23 @@ class SettingsStoreTests(unittest.TestCase):
             )
             self.assertNotEqual(store.catalog_path.parent, store.cache_path.parent)
 
+    def test_legacy_cache_is_migrated_to_application_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy = root / "program" / "orbital_cache.json"
+            legacy.parent.mkdir()
+            legacy.write_text(
+                json.dumps({"satellites": [{"NORAD_CAT_ID": "25544"}]}),
+                encoding="utf-8",
+            )
+            store = SettingsStore(root / "settings", legacy_cache_path=legacy)
+            self.assertEqual(
+                store.load_orbital_cache()["satellites"],
+                [{"NORAD_CAT_ID": "25544"}],
+            )
+            self.assertEqual(store.cache_path.parent, root / "settings")
+            self.assertTrue(legacy.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,21 +17,41 @@ if errorlevel 1 goto :error
 ".venv-build\Scripts\python.exe" -m pip install -r requirements-build.txt
 if errorlevel 1 goto :error
 
-echo Gerando executavel independente...
+echo Gerando distribuicao em pasta...
 ".venv-build\Scripts\python.exe" -m PyInstaller ^
     --noconfirm ^
     --clean ^
-    --onefile ^
+    --onedir ^
     --windowed ^
-    --name MissionPassTimeline ^
+    --noupx ^
+    --name MissionControlTimeline ^
     --paths src ^
     --collect-all sgp4 ^
+    --version-file packaging\windows_version_info.txt ^
     src\main.py
 if errorlevel 1 goto :error
 
 echo.
-echo Compilacao concluida:
-echo %CD%\dist\MissionPassTimeline.exe
+echo Aplicacao gerada:
+echo %CD%\dist\MissionControlTimeline\MissionControlTimeline.exe
+
+set "ISCC="
+if exist "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
+if exist "%ProgramFiles%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles%\Inno Setup 6\ISCC.exe"
+
+if defined ISCC (
+    echo.
+    echo Gerando instalador com Inno Setup...
+    "%ISCC%" "packaging\MissionControlTimeline.iss"
+    if errorlevel 1 goto :error
+    echo.
+    echo Instalador concluido:
+    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.7.0.exe
+) else (
+    echo.
+    echo Inno Setup 6 nao encontrado. A pasta do aplicativo foi gerada normalmente.
+    echo Para criar o instalador, instale o Inno Setup e execute este arquivo novamente.
+)
 pause
 exit /b 0
 

@@ -75,6 +75,27 @@ def parse_catalog_numbers(text: str) -> list[int]:
     return catalogs
 
 
+def parse_catalog_entry(text: str) -> list[int]:
+    """Parse NORAD numbers entered with commas, semicolons, or whitespace."""
+
+    values = [value for value in re.split(r"[,;\s]+", text.strip()) if value]
+    catalogs: list[int] = []
+    seen: set[int] = set()
+    for position, value in enumerate(values, start=1):
+        if not CATALOG_PATTERN.fullmatch(value) or int(value) <= 0:
+            raise CatalogListError(
+                f"Item {position} (“{value}”): informe somente um número NORAD positivo."
+            )
+        catalog = int(value)
+        if catalog in seen:
+            raise CatalogListError(f"O catálogo NORAD {catalog} está repetido.")
+        seen.add(catalog)
+        catalogs.append(catalog)
+    if not catalogs:
+        raise CatalogListError("Informe pelo menos um número NORAD.")
+    return catalogs
+
+
 def _epoch_utc(value: object) -> datetime:
     text = str(value).strip().replace("Z", "+00:00")
     try:

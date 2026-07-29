@@ -4,7 +4,7 @@ Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que os satélites de uma lista de números
 NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.6.0
+## Versão 0.7.0
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
 - marcador vermelho do horário atual após apenas 30 minutos de histórico;
@@ -16,9 +16,10 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - contagem regressiva sonora com um bip por segundo nos cinco segundos finais;
 - botão persistente para ativar ou silenciar os alertas;
 - grade adaptativa de 15 minutos a 3 horas conforme a escala escolhida;
-- importação de TXT com um número de catálogo NORAD por linha;
+- editor interno da lista NORAD, aceitando números separados por vírgulas,
+  espaços ou linhas;
 - atualização automática de dados orbitais pelo CelesTrak ao iniciar e a cada 24 h;
-- cache OMM/JSON separado ao lado do executável para operação sem internet;
+- configurações, lista NORAD e cache orbital preservados no AppData do usuário;
 - propagação orbital SGP4;
 - cálculo de AOS, LOS, máxima elevação, azimutes e distância;
 - estação e máscara de elevação configuráveis;
@@ -31,6 +32,21 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - fechamento automático do cartão ao clicar fora de uma passagem;
 - aviso visual de dados orbitais antigos;
 - detalhes da passagem ao clicar em uma faixa.
+
+### Alterações da versão 0.7.0
+
+- o botão **Lista NORAD** agora abre um editor dentro do programa;
+- instruções e exemplo de preenchimento exibidos na própria janela;
+- validação imediata da quantidade de satélites reconhecidos;
+- aceitação de números separados por vírgulas, ponto e vírgula, espaços ou
+  quebras de linha;
+- rejeição de nomes, valores inválidos e catálogos duplicados antes de salvar;
+- persistência canônica em `satellites.txt`, sem necessidade de localizar ou
+  manter um TXT externo;
+- migração automática do cache orbital antigo para a pasta de dados do usuário;
+- distribuição PyInstaller alterada de executável autoextraível para `onedir`;
+- metadados de produto e versão incorporados ao executável;
+- projeto de instalador Inno Setup incluído para uma instalação convencional.
 
 ### Alterações da versão 0.6.0
 
@@ -69,7 +85,7 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - cache com menos de duas horas é reutilizado no início para respeitar a política
   de uso do CelesTrak e evitar consultas duplicadas;
 - download executado em segundo plano, sem bloquear a interface;
-- `orbital_cache.json` gravado atomicamente na pasta do programa;
+- `orbital_cache.json` gravado atomicamente na pasta de dados do usuário;
 - uso automático do último cache válido quando a internet está indisponível;
 - atualização parcial preserva os registros antigos dos catálogos que falharam.
 - erros HTTP ou indisponibilidade do CelesTrak interrompem imediatamente a rodada,
@@ -79,39 +95,53 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 
 1. Instale Python 3.10 ou mais recente marcando a opção **Add Python to PATH**.
 2. Dê duplo clique em `run_windows.bat`.
-3. No programa, use **Lista NORAD** e escolha um arquivo `.txt`.
+3. No programa, use **Lista NORAD**, digite ou cole os números e salve.
 4. Abra **Estação** e informe as coordenadas reais da estação.
 
 Na primeira execução, o script cria um ambiente virtual e instala somente a
 biblioteca orbital necessária.
 
-## Gerar o executável
+## Gerar o aplicativo e o instalador
 
-Em um computador Windows, dê duplo clique em `build_windows.bat`. O executável
-independente será criado em:
+Em um computador Windows, dê duplo clique em `build_windows.bat`. A distribuição
+independente será criada em:
 
 ```text
-dist\MissionPassTimeline.exe
+dist\MissionControlTimeline\MissionControlTimeline.exe
 ```
 
-O computador em que o `.exe` for executado não precisará ter Python instalado.
+O computador em que ela for executada não precisará ter Python instalado. O
+formato `onedir` evita a extração de executáveis em uma pasta temporária a cada
+abertura.
+
+Se o **Inno Setup 6** estiver instalado, o mesmo script também criará:
+
+```text
+dist-installer\MissionControlTimeline_Setup_0.7.0.exe
+```
+
+O instalador é por usuário, não solicita privilégios administrativos e cria
+atalhos no menu Iniciar e, opcionalmente, na área de trabalho.
 
 ## Formato da lista NORAD
 
-Informe um número de catálogo por linha. Linhas vazias e comentários iniciados
-por `#` ou `;` são ignorados.
+Abra **Lista NORAD** e informe os números separados por vírgulas, espaços,
+ponto e vírgula ou linhas:
 
 ```text
-25544
-43786
-27607
-# comentários são permitidos
+25544, 43786, 27607
 ```
 
-O arquivo `orbital_cache.json` é independente da lista e fica ao lado do
-executável. Não o edite manualmente. Depois da primeira atualização bem-sucedida,
-o programa pode iniciar e calcular passagens sem conexão com a internet.
-O projeto inclui `example_satellites.txt` como modelo editável.
+O programa valida a lista e salva internamente um número por linha. Os arquivos
+de usuário ficam em:
+
+```text
+%LOCALAPPDATA%\MissionPassTimeline\
+```
+
+Não edite manualmente o `orbital_cache.json`. Depois da primeira atualização
+bem-sucedida, o programa pode iniciar e calcular passagens sem conexão com a
+internet.
 
 ## Observações de engenharia
 
