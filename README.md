@@ -1,13 +1,13 @@
-# Mission Control — Satellite Pass Timeline
+# Mission Control Timeline
 
 Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que os satélites de uma lista de números
 NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.7.1
+## Versão 0.8.0
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
-- marcador vermelho do horário atual após apenas 30 minutos de histórico;
+- marcador vermelho do horário atual após apenas 15 minutos de histórico;
 - cabeçalho simplificado com a data local e a próxima passagem entre todos os
   satélites, mostrando nome e contagem regressiva para AOS;
 - busca da próxima passagem em um horizonte de 24 horas, independentemente da
@@ -16,8 +16,10 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - contagem regressiva sonora com um bip por segundo nos cinco segundos finais;
 - botão persistente para ativar ou silenciar os alertas;
 - grade adaptativa de 15 minutos a 3 horas conforme a escala escolhida;
-- editor interno da lista NORAD, aceitando números separados por vírgulas,
-  espaços ou linhas;
+- janela única de ajustes para lista NORAD, estação, idioma e informações
+  sobre o programa;
+- interface em inglês por padrão, com português, espanhol, italiano, francês
+  e alemão;
 - atualização automática de dados orbitais pelo CelesTrak ao iniciar e a cada 24 h;
 - configurações, lista NORAD e cache orbital preservados no AppData do usuário;
 - propagação orbital SGP4;
@@ -102,8 +104,8 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 
 1. Instale Python 3.10 ou mais recente marcando a opção **Add Python to PATH**.
 2. Dê duplo clique em `run_windows.bat`.
-3. No programa, use **Lista NORAD**, digite ou cole os números e salve.
-4. Abra **Estação** e informe as coordenadas reais da estação.
+3. No programa, abra **Setup**, informe os números NORAD e os dados da estação.
+4. Escolha o idioma desejado e salve os ajustes.
 
 Na primeira execução, o script cria um ambiente virtual e instala somente a
 biblioteca orbital necessária.
@@ -124,7 +126,7 @@ abertura.
 Se o **Inno Setup 6** estiver instalado, o mesmo script também criará:
 
 ```text
-dist-installer\MissionControlTimeline_Setup_0.7.1.exe
+dist-installer\MissionControlTimeline_Setup_0.8.0.exe
 ```
 
 O instalador é por usuário, não solicita privilégios administrativos e cria
@@ -132,8 +134,8 @@ atalhos no menu Iniciar e, opcionalmente, na área de trabalho.
 
 ## Formato da lista NORAD
 
-Abra **Lista NORAD** e informe os números separados por vírgulas, espaços,
-ponto e vírgula ou linhas:
+Abra **Setup > Satellites** e informe os números separados por vírgulas,
+espaços, ponto e vírgula ou linhas:
 
 ```text
 25544, 43786, 27607
@@ -143,7 +145,7 @@ O programa valida a lista e salva internamente um número por linha. Os arquivos
 de usuário ficam em:
 
 ```text
-%LOCALAPPDATA%\MissionPassTimeline\
+%LOCALAPPDATA%\MissionControlTimeline\
 ```
 
 Não edite manualmente o `orbital_cache.json`. Depois da primeira atualização

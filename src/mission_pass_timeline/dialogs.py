@@ -4,51 +4,92 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 from typing import Callable
 
+from . import __version__
+from .i18n import LANGUAGES, translate
 from .models import Station
 from .orbital_data import CatalogListError, parse_catalog_entry
 
+SetupSaveHandler = Callable[[Station, list[int], str], None]
 
-class CatalogListDialog(tk.Toplevel):
+
+class SetupDialog(tk.Toplevel):
     def __init__(
         self,
         parent: tk.Misc,
+        station: Station,
         catalogs: list[int],
-        on_save: Callable[[list[int]], None],
+        language: str,
+        on_save: SetupSaveHandler,
     ):
         super().__init__(parent)
-        self.title("Lista de satélites — números NORAD")
-        self.geometry("650x460")
-        self.minsize(520, 400)
+        self.geometry("720x590")
+        self.minsize(660, 520)
         self.transient(parent)
         self.grab_set()
         self.configure(bg="#111820")
         self._on_save = on_save
+        self.language = language if language in LANGUAGES else "en"
 
-        content = ttk.Frame(self, padding=22)
-        content.pack(fill="both", expand=True)
-        content.columnconfigure(0, weight=1)
-        content.rowconfigure(2, weight=1)
-        ttk.Label(
-            content,
-            text="SATÉLITES RASTREADOS",
-            style="Title.TLabel",
-        ).grid(row=0, column=0, sticky="w")
-        ttk.Label(
-            content,
-            text=(
-                "Informe os números de catálogo NORAD separados por vírgulas, "
-                "espaços ou linhas. Exemplo: 25544, 33591, 27607"
-            ),
-            style="Hint.TLabel",
-            wraplength=590,
-            justify="left",
-        ).grid(row=1, column=0, sticky="ew", pady=(5, 14))
+        self.station_variables = {
+            "name": tk.StringVar(value=station.name),
+            "latitude": tk.StringVar(value=f"{station.latitude_deg:.6f}"),
+            "longitude": tk.StringVar(value=f"{station.longitude_deg:.6f}"),
+            "altitude": tk.StringVar(value=f"{station.altitude_m:.1f}"),
+            "mask": tk.StringVar(value=f"{station.min_elevation_deg:.1f}"),
+        }
+        self.language_variable = tk.StringVar(value=LANGUAGES[self.language])
 
+        content = ttk.Frame(self, padding=18)
+        content.grid(row=0, column=0, sticky="nsew")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        content.grid_rowconfigure(0, weight=1)
+        content.grid_columnconfigure(0, weight=1)
+        self.notebook = ttk.Notebook(content, style="Setup.TNotebook")
+        self.notebook.grid(row=0, column=0, sticky="nsew")
+
+        self.satellites_tab = ttk.Frame(self.notebook, padding=18)
+        self.station_tab = ttk.Frame(self.notebook, padding=18)
+        self.language_tab = ttk.Frame(self.notebook, padding=18)
+        self.about_tab = ttk.Frame(self.notebook, padding=18)
+        self._build_satellites_tab(catalogs)
+        self._build_station_tab()
+        self._build_language_tab()
+        self._build_about_tab()
+
+        footer = ttk.Frame(content)
+        footer.grid(row=1, column=0, sticky="ew", pady=(14, 0))
+        self.cancel_button = ttk.Button(footer, command=self.destroy)
+        self.cancel_button.pack(side="right", padx=(8, 0))
+        self.save_button = ttk.Button(
+            footer, style="Accent.TButton", command=self._save
+        )
+        self.save_button.pack(side="right")
+
+        self.language_selector.bind("<<ComboboxSelected>>", self._language_changed)
+        self.bind("<Escape>", lambda _event: self.destroy())
+        self.bind("<Control-Return>", lambda _event: self._save())
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        self._apply_language()
+        self.update_idletasks()
+        x = parent.winfo_rootx() + (parent.winfo_width() - self.winfo_width()) // 2
+        y = parent.winfo_rooty() + (parent.winfo_height() - self.winfo_height()) // 2
+        self.geometry(f"+{max(x, 0)}+{max(y, 0)}")
+
+    def _build_satellites_tab(self, catalogs: list[int]) -> None:
+        tab = self.satellites_tab
+        tab.columnconfigure(0, weight=1)
+        tab.rowconfigure(2, weight=1)
+        self.satellites_title = ttk.Label(tab, style="Title.TLabel")
+        self.satellites_title.grid(row=0, column=0, sticky="w")
+        self.satellites_instructions = ttk.Label(
+            tab, style="Hint.TLabel", wraplength=625, justify="left"
+        )
+        self.satellites_instructions.grid(
+            row=1, column=0, sticky="ew", pady=(5, 14)
+        )
         editor_frame = tk.Frame(
-            content,
-            bg="#29495b",
-            highlightbackground="#29495b",
-            highlightthickness=1,
+            tab, bg="#29495b", highlightbackground="#29495b", highlightthickness=1
         )
         editor_frame.grid(row=2, column=0, sticky="nsew")
         self.editor = tk.Text(
@@ -75,32 +116,120 @@ class CatalogListDialog(tk.Toplevel):
         self.editor.insert("1.0", ", ".join(str(value) for value in catalogs))
         self.editor.bind("<<Modified>>", self._editor_modified)
         self.editor.edit_modified(False)
+        self.count_label = ttk.Label(tab, style="Hint.TLabel")
+        self.count_label.grid(row=3, column=0, sticky="w", pady=(10, 0))
 
-        footer = ttk.Frame(content)
-        footer.grid(row=3, column=0, sticky="ew", pady=(13, 0))
-        self.count_label = ttk.Label(footer, style="Hint.TLabel")
-        self.count_label.pack(side="left")
-        buttons = ttk.Frame(footer)
-        buttons.pack(side="right")
-        ttk.Button(buttons, text="Cancelar", command=self.destroy).pack(
-            side="left", padx=(0, 8)
+    def _build_station_tab(self) -> None:
+        self.station_labels: dict[str, ttk.Label] = {}
+        self.station_hints: dict[str, ttk.Label] = {}
+        keys = ("name", "latitude", "longitude", "altitude", "mask")
+        for row, key in enumerate(keys):
+            label = ttk.Label(self.station_tab)
+            label.grid(row=row, column=0, sticky="w", pady=8)
+            entry = ttk.Entry(
+                self.station_tab,
+                textvariable=self.station_variables[key],
+                width=28,
+            )
+            entry.grid(row=row, column=1, sticky="ew", padx=(18, 12), pady=8)
+            hint = ttk.Label(self.station_tab, style="Hint.TLabel")
+            hint.grid(row=row, column=2, sticky="w", pady=8)
+            self.station_labels[key] = label
+            self.station_hints[key] = hint
+        self.station_tab.columnconfigure(1, weight=1)
+
+    def _build_language_tab(self) -> None:
+        self.language_title = ttk.Label(
+            self.language_tab, style="Title.TLabel"
         )
-        ttk.Button(
-            buttons,
-            text="Salvar lista",
-            style="Accent.TButton",
-            command=self._save,
-        ).pack(side="left")
+        self.language_title.pack(anchor="w")
+        self.language_selector = ttk.Combobox(
+            self.language_tab,
+            state="readonly",
+            width=24,
+            values=tuple(LANGUAGES.values()),
+            textvariable=self.language_variable,
+            style="Timeline.TCombobox",
+        )
+        self.language_selector.pack(anchor="w", pady=(20, 10))
+        self.language_hint = ttk.Label(
+            self.language_tab,
+            style="Hint.TLabel",
+            wraplength=580,
+            justify="left",
+        )
+        self.language_hint.pack(anchor="w")
 
-        self.bind("<Escape>", lambda _event: self.destroy())
-        self.bind("<Control-Return>", lambda _event: self._save())
-        self.protocol("WM_DELETE_WINDOW", self.destroy)
-        self.update_idletasks()
-        x = parent.winfo_rootx() + (parent.winfo_width() - self.winfo_width()) // 2
-        y = parent.winfo_rooty() + (parent.winfo_height() - self.winfo_height()) // 2
-        self.geometry(f"+{max(x, 0)}+{max(y, 0)}")
+    def _build_about_tab(self) -> None:
+        ttk.Label(
+            self.about_tab,
+            text="MISSION CONTROL TIMELINE",
+            style="Title.TLabel",
+        ).pack(anchor="w")
+        self.about_description = ttk.Label(
+            self.about_tab, wraplength=610, justify="left"
+        )
+        self.about_description.pack(anchor="w", pady=(15, 22))
+        self.about_version = ttk.Label(self.about_tab, style="Hint.TLabel")
+        self.about_version.pack(anchor="w", pady=3)
+        self.about_developer = ttk.Label(self.about_tab, style="Hint.TLabel")
+        self.about_developer.pack(anchor="w", pady=3)
+        self.about_orbital = ttk.Label(self.about_tab, style="Hint.TLabel")
+        self.about_orbital.pack(anchor="w", pady=3)
+
+    def _selected_language(self) -> str:
+        selected_name = self.language_variable.get()
+        return next(
+            (code for code, name in LANGUAGES.items() if name == selected_name),
+            "en",
+        )
+
+    def _language_changed(self, _event: tk.Event | None = None) -> None:
+        self.language = self._selected_language()
+        self._apply_language()
+
+    def _apply_language(self) -> None:
+        t = lambda key, **values: translate(self.language, key, **values)
+        self.title(t("setup_title"))
+        tabs = (
+            (self.satellites_tab, "tab_satellites"),
+            (self.station_tab, "tab_station"),
+            (self.language_tab, "tab_language"),
+            (self.about_tab, "tab_about"),
+        )
+        for tab, key in tabs:
+            if str(tab) in self.notebook.tabs():
+                self.notebook.tab(tab, text=t(key))
+            else:
+                self.notebook.add(tab, text=t(key))
+        self.satellites_title.configure(text=t("tracked_satellites"))
+        self.satellites_instructions.configure(text=t("norad_instructions"))
+        labels = {
+            "name": "station_name",
+            "latitude": "latitude",
+            "longitude": "longitude",
+            "altitude": "altitude",
+            "mask": "minimum_elevation",
+        }
+        hints = {
+            "name": "station_name_hint",
+            "latitude": "latitude_hint",
+            "longitude": "longitude_hint",
+            "altitude": "altitude_hint",
+            "mask": "minimum_elevation_hint",
+        }
+        for key in labels:
+            self.station_labels[key].configure(text=t(labels[key]))
+            self.station_hints[key].configure(text=t(hints[key]))
+        self.language_title.configure(text=t("language_title"))
+        self.language_hint.configure(text=t("language_hint"))
+        self.about_description.configure(text=t("about_description"))
+        self.about_version.configure(text=t("about_version", version=__version__))
+        self.about_developer.configure(text=t("about_developer"))
+        self.about_orbital.configure(text=t("about_orbital"))
+        self.cancel_button.configure(text=t("cancel"))
+        self.save_button.configure(text=t("save"))
         self._refresh_count()
-        self.editor.focus_set()
 
     def _editor_modified(self, _event: tk.Event | None = None) -> None:
         if not self.editor.edit_modified():
@@ -111,100 +240,41 @@ class CatalogListDialog(tk.Toplevel):
     def _refresh_count(self) -> None:
         try:
             count = len(parse_catalog_entry(self.editor.get("1.0", "end-1c")))
-            text = f"{count} satélite{'s' if count != 1 else ''} na lista"
+            text = translate(
+                self.language, "satellites_in_list", count=count
+            )
             color = "#7be3aa"
         except CatalogListError:
-            text = "Lista aguardando dados válidos"
+            text = translate(self.language, "invalid_list_waiting")
             color = "#78909c"
         self.count_label.configure(text=text, foreground=color)
-
-    def _save(self) -> None:
-        try:
-            catalogs = parse_catalog_entry(self.editor.get("1.0", "end-1c"))
-        except CatalogListError as exc:
-            messagebox.showerror("Lista NORAD inválida", str(exc), parent=self)
-            return
-        self._on_save(catalogs)
-        self.destroy()
-
-
-class StationDialog(tk.Toplevel):
-    def __init__(
-        self,
-        parent: tk.Misc,
-        station: Station,
-        on_save: Callable[[Station], None],
-    ):
-        super().__init__(parent)
-        self.title("Configuração da estação")
-        self.resizable(False, False)
-        self.transient(parent)
-        self.grab_set()
-        self.configure(bg="#111820")
-        self._on_save = on_save
-
-        self.variables = {
-            "name": tk.StringVar(value=station.name),
-            "latitude": tk.StringVar(value=f"{station.latitude_deg:.6f}"),
-            "longitude": tk.StringVar(value=f"{station.longitude_deg:.6f}"),
-            "altitude": tk.StringVar(value=f"{station.altitude_m:.1f}"),
-            "mask": tk.StringVar(value=f"{station.min_elevation_deg:.1f}"),
-        }
-
-        content = ttk.Frame(self, padding=22)
-        content.grid(sticky="nsew")
-        fields = [
-            ("Nome da estação", "name", "Ex.: PU2PTU Ground Station"),
-            ("Latitude (°)", "latitude", "Sul é negativo"),
-            ("Longitude (°)", "longitude", "Oeste é negativo"),
-            ("Altitude (m)", "altitude", "Acima do nível médio do mar"),
-            ("Elevação mínima (°)", "mask", "Máscara do horizonte"),
-        ]
-        first_entry: ttk.Entry | None = None
-        for row, (label, key, hint) in enumerate(fields):
-            ttk.Label(content, text=label).grid(row=row, column=0, sticky="w", pady=7)
-            entry = ttk.Entry(content, textvariable=self.variables[key], width=27)
-            entry.grid(row=row, column=1, sticky="ew", padx=(18, 10), pady=7)
-            ttk.Label(content, text=hint, style="Hint.TLabel").grid(
-                row=row, column=2, sticky="w", pady=7
-            )
-            if first_entry is None:
-                first_entry = entry
-
-        buttons = ttk.Frame(content)
-        buttons.grid(row=len(fields), column=0, columnspan=3, sticky="e", pady=(18, 0))
-        ttk.Button(buttons, text="Cancelar", command=self.destroy).pack(
-            side="left", padx=(0, 8)
-        )
-        ttk.Button(
-            buttons, text="Salvar", style="Accent.TButton", command=self._save
-        ).pack(side="left")
-
-        self.bind("<Escape>", lambda _event: self.destroy())
-        self.bind("<Return>", lambda _event: self._save())
-        self.update_idletasks()
-        x = parent.winfo_rootx() + (parent.winfo_width() - self.winfo_width()) // 2
-        y = parent.winfo_rooty() + (parent.winfo_height() - self.winfo_height()) // 2
-        self.geometry(f"+{max(x, 0)}+{max(y, 0)}")
-        if first_entry is not None:
-            first_entry.focus_set()
 
     @staticmethod
     def _number(value: str) -> float:
         return float(value.strip().replace(",", "."))
 
     def _save(self) -> None:
+        language = self._selected_language()
+        try:
+            catalogs = parse_catalog_entry(self.editor.get("1.0", "end-1c"))
+        except CatalogListError as exc:
+            messagebox.showerror(
+                translate(language, "invalid_norad"), str(exc), parent=self
+            )
+            return
         try:
             station = Station(
-                name=self.variables["name"].get().strip(),
-                latitude_deg=self._number(self.variables["latitude"].get()),
-                longitude_deg=self._number(self.variables["longitude"].get()),
-                altitude_m=self._number(self.variables["altitude"].get()),
-                min_elevation_deg=self._number(self.variables["mask"].get()),
+                name=self.station_variables["name"].get().strip(),
+                latitude_deg=self._number(self.station_variables["latitude"].get()),
+                longitude_deg=self._number(self.station_variables["longitude"].get()),
+                altitude_m=self._number(self.station_variables["altitude"].get()),
+                min_elevation_deg=self._number(self.station_variables["mask"].get()),
             )
             station.validate()
         except ValueError as exc:
-            messagebox.showerror("Dados inválidos", str(exc), parent=self)
+            messagebox.showerror(
+                translate(language, "invalid_station"), str(exc), parent=self
+            )
             return
-        self._on_save(station)
+        self._on_save(station, catalogs, language)
         self.destroy()

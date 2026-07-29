@@ -10,7 +10,7 @@ LABEL_WIDTH = 215
 TOP = 155
 ROW_HEIGHT = 56
 NOW_HOUR = 11 + 42 / 60
-WINDOW_START = NOW_HOUR - 0.5
+WINDOW_START = NOW_HOUR - 0.25
 WINDOW_HOURS = 6
 COLORS = ["#26c6da", "#42a5f5", "#7e57c2", "#ec407a", "#ff7043", "#ffca28"]
 
@@ -39,42 +39,42 @@ def main() -> None:
     image = Image.new("RGB", (WIDTH, HEIGHT), "#071019")
     draw = ImageDraw.Draw(image)
     draw.rectangle((0, 0, WIDTH, 106), fill="#111b24")
-    draw.text((24, 21), "MISSION CONTROL", font=font(27, True), fill="#ffffff")
+    draw.text(
+        (24, 21), "MISSION CONTROL TIMELINE", font=font(27, True), fill="#ffffff"
+    )
     draw.text(
         (24, 62),
-        "SJC (PROVISÓRIA)  •  -23.20890°, -45.86090°  •  MÁSCARA 10.0°",
-        font=font(13),
-        fill="#78909c",
+        "SJC (PROVISÓRIA)  •  -23.20890°, -45.86090°  •  MASK 10.0°",
+        font=font(14),
+        fill="#9fb3bd",
     )
 
-    draw.rounded_rectangle((690, 24, 812, 78), 8, fill="#1d303d")
-    draw.text((709, 41), "LISTA NORAD", font=font(12, True), fill="#e8f1f5")
-    draw.rounded_rectangle((823, 24, 922, 78), 8, fill="#1d303d")
-    draw.text((839, 41), "ATUALIZAR", font=font(11, True), fill="#e8f1f5")
-    draw.rounded_rectangle((933, 24, 1047, 78), 8, fill="#1d303d")
-    draw.text((957, 41), "ESTAÇÃO", font=font(13, True), fill="#e8f1f5")
-    draw.rounded_rectangle((1058, 24, 1165, 78), 8, fill="#1d303d")
-    draw.text((1074, 41), "SOM ATIVO", font=font(11, True), fill="#e8f1f5")
-    draw.text((1180, 43), "JANELA", font=font(11, True), fill="#78909c")
+    draw.rounded_rectangle((790, 24, 880, 78), 8, fill="#1d303d")
+    draw.text((808, 41), "SETUP", font=font(12, True), fill="#e8f1f5")
+    draw.rounded_rectangle((891, 24, 990, 78), 8, fill="#1d303d")
+    draw.text((907, 41), "UPDATE", font=font(11, True), fill="#e8f1f5")
+    draw.rounded_rectangle((1001, 24, 1108, 78), 8, fill="#1d303d")
+    draw.text((1017, 41), "SOUND ON", font=font(11, True), fill="#e8f1f5")
+    draw.text((1123, 43), "WINDOW", font=font(11, True), fill="#78909c")
     draw.rounded_rectangle((1250, 24, 1388, 78), 7, fill="#09141d", outline="#29495b")
     draw.text((1285, 41), "6 h    ▼", font=font(13, True), fill="#e8f1f5")
 
     draw.rectangle((0, 106, WIDTH, TOP), fill="#0c1720")
     draw.text(
         (24, 121),
-        "24/07/2026  •  PRÓXIMA PASSAGEM • NANOSATC-BR1  •  AOS EM 00:18:42",
+        "24/07/2026  •  NEXT PASS • NANOSATC-BR1  •  AOS IN 00:18:42",
         font=font(14, True),
         fill="#e6f0f5",
     )
     draw.text(
         (1030, 123),
-        "6 SATÉLITES  •  9 PASSAGENS  •  CELESTRAK 17/07 16:42",
+        "6 SATELLITES  •  9 PASSES  •  CELESTRAK 17/07 16:42",
         font=font(12),
         fill="#78909c",
     )
 
     draw.rectangle((0, TOP, WIDTH, TOP + 60), fill="#0d1822")
-    draw.text((16, TOP + 28), "SATÉLITE", font=font(12, True), fill="#78909c")
+    draw.text((16, TOP + 28), "SATELLITE", font=font(12, True), fill="#78909c")
 
     tick = 11.5
     while tick <= 17.0:
@@ -112,6 +112,8 @@ def main() -> None:
         for begin, end, elevation in windows:
             x0 = max(x_for(begin), LABEL_WIDTH)
             x1 = min(x_for(end), WIDTH - 18)
+            if x1 <= x0:
+                continue
             draw.rounded_rectangle(
                 (x0, y0 + 10, x1, y1 - 10),
                 4,
@@ -166,11 +168,11 @@ def main() -> None:
     )
     draw.text((card_x + 15, card_y + 35), "NORAD 33591", font=font(9), fill="#78909c")
     popup_rows = [
-        ("CONT.", "AOS EM 27:14"),
+        ("COUNT.", "AOS IN 27:14"),
         ("AOS", "12:09:00   AZ 214°"),
-        ("MÁX", "12:15:42   EL 72.0°   AZ 148°"),
+        ("MAX", "12:15:42   EL 72.0°   AZ 148°"),
         ("LOS", "12:22:48   AZ  71°"),
-        ("DIST", "482 km no ponto de máxima"),
+        ("DIST", "482 km at maximum elevation"),
     ]
     for index, (label, value) in enumerate(popup_rows):
         y = card_y + 63 + index * 24

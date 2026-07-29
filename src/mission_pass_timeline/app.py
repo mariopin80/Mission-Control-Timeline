@@ -8,10 +8,12 @@ import threading
 import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from tkinter import ttk
 
 from . import __version__
-from .dialogs import CatalogListDialog, StationDialog
+from .dialogs import SetupDialog
+from .i18n import translate
 from .models import PassWindow, Satellite, Station
 from .orbital_data import (
     CatalogListError,
@@ -29,12 +31,19 @@ UTC = timezone.utc
 WINDOW_OPTIONS = (3, 6, 8, 12, 24)
 CALCULATION_REFRESH = timedelta(minutes=5)
 CALCULATION_MARGIN = timedelta(minutes=30)
-HISTORY_DURATION = timedelta(minutes=30)
+HISTORY_DURATION = timedelta(minutes=15)
 NEXT_PASS_LOOKAHEAD = timedelta(hours=24)
 ORBITAL_UPDATE_INTERVAL = timedelta(hours=24)
 CELESTRAK_MIN_REFRESH = timedelta(hours=2)
 TWO_MINUTE_ALERT_SECONDS = 120
 FINAL_COUNTDOWN_SECONDS = 5
+
+
+def bundled_asset(relative_path: str) -> Path:
+    """Return an asset path in source runs and PyInstaller builds."""
+
+    bundle_root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+    return bundle_root / relative_path
 
 
 def format_countdown(duration: timedelta) -> str:
@@ -48,17 +57,31 @@ def format_countdown(duration: timedelta) -> str:
     return f"{minutes:02d}:{seconds:02d}"
 
 
-def pass_countdown_text(pass_window: PassWindow, now_utc: datetime) -> str:
+def pass_countdown_text(
+    pass_window: PassWindow, now_utc: datetime, language: str = "en"
+) -> str:
     """Describe the next boundary of a pass, or how long ago LOS occurred."""
 
     if now_utc.tzinfo is None:
         raise ValueError("O instante do contador deve possuir fuso horário.")
     now_utc = now_utc.astimezone(UTC)
     if now_utc < pass_window.aos_utc:
-        return f"AOS EM {format_countdown(pass_window.aos_utc - now_utc)}"
+        return translate(
+            language,
+            "aos_in",
+            countdown=format_countdown(pass_window.aos_utc - now_utc),
+        )
     if now_utc < pass_window.los_utc:
-        return f"LOS EM {format_countdown(pass_window.los_utc - now_utc)}"
-    return f"LOS HÁ {format_countdown(now_utc - pass_window.los_utc)}"
+        return translate(
+            language,
+            "los_in",
+            countdown=format_countdown(pass_window.los_utc - now_utc),
+        )
+    return translate(
+        language,
+        "los_ago",
+        countdown=format_countdown(now_utc - pass_window.los_utc),
+    )
 
 
 def next_upcoming_pass(
@@ -130,7 +153,7 @@ class AosAlertController:
 
 
 def moving_window_bounds(center: datetime, hours: int) -> tuple[datetime, datetime]:
-    """Place the current instant 30 minutes after the start of a fixed span."""
+    """Place the current instant 15 minutes after the start of a fixed span."""
 
     if center.tzinfo is None:
         raise ValueError("O centro da janela deve possuir fuso horário.")
@@ -171,6 +194,7 @@ class MissionPassApp:
         self.station = self.store.load_station()
         self.timeline_hours = self.store.load_timeline_hours()
         self.sound_enabled = self.store.load_sound_enabled()
+        self.language = self.store.load_language()
         self.satellites: list[Satellite] = []
         self.catalogs: list[int] = []
         self._pass_results: dict[int, list[PassWindow]] = {}
@@ -187,7 +211,7 @@ class MissionPassApp:
         self._orbital_update_in_progress = False
         self._last_orbital_update_attempt: datetime | None = None
         self._last_orbital_cache_update: datetime | None = None
-        self._orbital_status = "SEM DADOS ORBITAIS"
+        self._orbital_status = self._t("no_orbital_data")
         self._aos_alerts = AosAlertController()
         self._result_queue: queue.Queue[
             tuple[
@@ -210,8 +234,11 @@ class MissionPassApp:
         self._poll_orbital_results()
         self._tick()
 
+    def _t(self, key: str, **values: object) -> str:
+        return translate(self.language, key, **values)
+
     def _configure_root(self) -> None:
-        self.root.title(f"Mission Control — Satellite Pass Timeline {__version__}")
+        self.root.title(f"Mission Control Timeline {__version__}")
         self.root.geometry("1280x720")
         self.root.minsize(900, 260)
         self.root.configure(bg="#071019")
@@ -238,6 +265,12 @@ class MissionPassApp:
             background="#111b24",
             foreground="#78909c",
             font=("Segoe UI", 9),
+        )
+        style.configure(
+            "Station.TLabel",
+            background="#111b24",
+            foreground="#9fb3bd",
+            font=("Segoe UI", 10),
         )
         style.configure(
             "TButton",
@@ -274,33 +307,56 @@ class MissionPassApp:
             fieldbackground=[("readonly", "#09141d")],
             foreground=[("readonly", "#e8f1f5")],
         )
+        style.configure(
+            "Setup.TNotebook",
+            background="#111b24",
+            borderwidth=0,
+            tabmargins=(0, 0, 0, 0),
+        )
+        style.configure(
+            "Setup.TNotebook.Tab",
+            background="#1d303d",
+            foreground="#dce8ef",
+            borderwidth=0,
+            padding=(16, 9),
+            font=("Segoe UI Semibold", 9),
+        )
+        style.map(
+            "Setup.TNotebook.Tab",
+            background=[
+                ("selected", "#29495b"),
+                ("active", "#233b4a"),
+            ],
+            foreground=[
+                ("selected", "#ffffff"),
+                ("active", "#ffffff"),
+            ],
+        )
 
     def _build_ui(self) -> None:
         top = ttk.Frame(self.root, padding=(18, 13))
         top.pack(fill="x")
         title_group = ttk.Frame(top)
         title_group.pack(side="left")
-        ttk.Label(title_group, text="MISSION CONTROL", style="Title.TLabel").pack(
+        ttk.Label(
+            title_group, text="MISSION CONTROL TIMELINE", style="Title.TLabel"
+        ).pack(
             anchor="w"
         )
-        self.station_label = ttk.Label(title_group, style="Hint.TLabel")
+        self.station_label = ttk.Label(title_group, style="Station.TLabel")
         self.station_label.pack(anchor="w", pady=(2, 0))
 
         controls = ttk.Frame(top)
         controls.pack(side="right")
-        ttk.Button(controls, text="Lista NORAD", command=self.import_catalogs).pack(
-            side="left", padx=4
-        )
-        ttk.Button(controls, text="Atualizar", command=self.update_orbital_data).pack(
-            side="left", padx=4
-        )
-        ttk.Button(controls, text="Estação", command=self.open_station).pack(
-            side="left", padx=4
-        )
+        self.setup_button = ttk.Button(controls, command=self.open_setup)
+        self.setup_button.pack(side="left", padx=4)
+        self.update_button = ttk.Button(controls, command=self.update_orbital_data)
+        self.update_button.pack(side="left", padx=4)
         self.sound_button = ttk.Button(controls, text="", command=self._toggle_sound)
         self.sound_button.pack(side="left", padx=4)
         self._refresh_sound_button()
-        ttk.Label(controls, text="JANELA", style="Hint.TLabel").pack(
+        self.window_caption = ttk.Label(controls, style="Hint.TLabel")
+        self.window_caption.pack(
             side="left", padx=(18, 7)
         )
         self.window_variable = tk.StringVar(value=f"{self.timeline_hours} h")
@@ -333,10 +389,15 @@ class MissionPassApp:
         )
         self.tle_label.pack(side="right", padx=18)
 
-        self.timeline = TimelineView(self.root, on_pass_selected=self.show_pass_details)
+        self.timeline = TimelineView(
+            self.root,
+            on_pass_selected=self.show_pass_details,
+            language=self.language,
+        )
         self.timeline.pack(fill="both", expand=True)
         self.root.bind_all("<Button-1>", self._global_click, add="+")
         self._refresh_labels()
+        self._apply_language()
 
     def _window_bounds(
         self, center: datetime | None = None
@@ -354,11 +415,13 @@ class MissionPassApp:
             else None
         )
         if next_pass is None:
-            next_pass_text = "PRÓXIMA PASSAGEM • NENHUMA NAS PRÓXIMAS 24 H"
+            next_pass_text = self._t("next_pass_none")
         else:
             countdown = format_countdown(next_pass.aos_utc - now.astimezone(UTC))
-            next_pass_text = (
-                f"PRÓXIMA PASSAGEM • {next_pass.satellite.name}  •  AOS EM {countdown}"
+            next_pass_text = self._t(
+                "next_pass",
+                name=next_pass.satellite.name,
+                countdown=countdown,
             )
         self.window_label.configure(text=f"{now:%d/%m/%Y}  •  {next_pass_text}")
 
@@ -384,7 +447,7 @@ class MissionPassApp:
 
     def _refresh_sound_button(self) -> None:
         self.sound_button.configure(
-            text="SOM ATIVO" if self.sound_enabled else "SOM MUDO"
+            text=self._t("sound_on") if self.sound_enabled else self._t("sound_muted")
         )
 
     def _toggle_sound(self) -> None:
@@ -406,7 +469,7 @@ class MissionPassApp:
         self.station_label.configure(
             text=(
                 f"{self.station.name}  •  {self.station.latitude_deg:+.5f}°, "
-                f"{self.station.longitude_deg:+.5f}°  •  máscara "
+                f"{self.station.longitude_deg:+.5f}°  •  {self._t('mask')} "
                 f"{self.station.min_elevation_deg:.1f}°"
             )
         )
@@ -418,21 +481,26 @@ class MissionPassApp:
                 (now_utc - satellite.epoch_utc).total_seconds() > 14 * 86400
                 for satellite in self.satellites
             )
-            warning = f"  •  {old_count} DADO(S) ANTIGO(S)" if old_count else ""
+            warning = (
+                f"  •  {self._t('old_data_count', count=old_count)}"
+                if old_count
+                else ""
+            )
             pass_summary = (
-                f"  •  {self._visible_pass_total} PASSAGENS"
+                f"  •  {self._t('passes_count', count=self._visible_pass_total)}"
                 if self._display_ready
                 else ""
             )
             error_summary = (
-                f"  •  {self._calculation_error_count} ERRO(S)"
+                f"  •  {self._t('errors_count', count=self._calculation_error_count)}"
                 if self._calculation_error_count
                 else ""
             )
             self.tle_label.configure(
                 text=(
-                    f"{len(self.satellites)} SATÉLITES{pass_summary}  •  "
-                    f"{self._orbital_status}  •  ÉPOCA {newest:%d/%m/%Y %H:%M} UTC"
+                    f"{self._t('satellites_count', count=len(self.satellites))}"
+                    f"{pass_summary}  •  {self._orbital_status}  •  "
+                    f"{self._t('epoch')} {newest:%d/%m/%Y %H:%M} UTC"
                     f"{warning}{error_summary}"
                 ),
                 fg=(
@@ -448,23 +516,51 @@ class MissionPassApp:
         text = self.store.load_catalog_text()
         if text is None:
             self.timeline.show_message(
-                "Cadastre os satélites",
-                "Use Lista NORAD, informe os catálogos desejados e confira a estação.",
+                self._t("register_satellites"),
+                self._t("register_satellites_message"),
             )
             return
         try:
             self.catalogs = parse_catalog_numbers(text)
         except CatalogListError:
             self.timeline.show_message(
-                "Não foi possível abrir a lista salva",
-                "Abra Lista NORAD e salve novamente os números dos satélites.",
+                self._t("saved_list_error"),
+                self._t("saved_list_error_message"),
             )
             return
         self._load_cached_satellites()
         self.update_orbital_data()
 
-    def import_catalogs(self) -> None:
-        CatalogListDialog(self.root, list(self.catalogs), self._save_catalogs)
+    def open_setup(self) -> None:
+        SetupDialog(
+            self.root,
+            self.station,
+            list(self.catalogs),
+            self.language,
+            self._save_setup,
+        )
+
+    def _save_setup(
+        self, station: Station, catalogs: list[int], language: str
+    ) -> None:
+        station_changed = station != self.station
+        catalogs_changed = catalogs != self.catalogs
+        language_changed = language != self.language
+
+        self.station = station
+        self.store.save_station(station)
+        self.language = language
+        self.store.save_language(language)
+        if language_changed:
+            self._apply_language()
+        if catalogs_changed:
+            self._save_catalogs(catalogs)
+            return
+        if station_changed:
+            self._live_propagators.clear()
+            if self.satellites:
+                self.calculate()
+        self._refresh_labels()
 
     def _save_catalogs(self, catalogs: list[int]) -> None:
         self.catalogs = catalogs
@@ -494,17 +590,19 @@ class MissionPassApp:
                 updated_utc = datetime.fromisoformat(timestamp).astimezone(UTC)
                 self._last_orbital_cache_update = updated_utc
                 updated = updated_utc.astimezone()
-                self._orbital_status = f"CACHE LOCAL {updated:%d/%m %H:%M}"
+                self._orbital_status = (
+                    f"{self._t('local_cache')} {updated:%d/%m %H:%M}"
+                )
             except ValueError:
-                self._orbital_status = "CACHE LOCAL"
+                self._orbital_status = self._t("local_cache")
             self._refresh_labels()
             self.calculate()
         else:
-            self._orbital_status = "AGUARDANDO DADOS ORBITAIS"
+            self._orbital_status = self._t("waiting_orbital")
             self._refresh_labels()
             self.timeline.show_message(
-                "Atualizando dados orbitais…",
-                "Na primeira execução é necessária uma conexão com a internet.",
+                self._t("updating_orbital"),
+                self._t("first_run_internet"),
             )
 
     def update_orbital_data(self) -> None:
@@ -526,14 +624,17 @@ class MissionPassApp:
         )
         if not catalogs:
             self._last_orbital_update_attempt = self._last_orbital_cache_update
-            self._orbital_status = f"CACHE ATUAL {self._last_orbital_cache_update.astimezone():%d/%m %H:%M}"
+            self._orbital_status = (
+                f"{self._t('current_cache')} "
+                f"{self._last_orbital_cache_update.astimezone():%d/%m %H:%M}"
+            )
             self._refresh_labels()
             return
 
         self._orbital_update_in_progress = True
         attempted_at = now_utc
         self._last_orbital_update_attempt = attempted_at
-        self._orbital_status = "ATUALIZANDO CELESTRAK…"
+        self._orbital_status = self._t("updating_celestrak")
         self._refresh_labels()
         catalog_snapshot = list(self.catalogs)
 
@@ -607,7 +708,7 @@ class MissionPassApp:
                         source = (
                             f"{source_name} PARCIAL"
                             if downloaded
-                            else "CACHE LOCAL • OFFLINE"
+                            else f"{self._t('local_cache')} • OFFLINE"
                         )
                         self._orbital_status = (
                             f"{source} {attempted_at.astimezone():%d/%m %H:%M}"
@@ -620,26 +721,23 @@ class MissionPassApp:
                     self.calculate()
                 else:
                     detail = errors[0] if errors else "Nenhuma fonte retornou dados."
-                    self._orbital_status = "FONTES ORBITAIS INDISPONÍVEIS"
+                    self._orbital_status = self._t("sources_unavailable")
                     self._refresh_labels()
                     self.timeline.show_message(
-                        "Dados orbitais indisponíveis",
-                        f"{detail}\nNenhum cache válido foi encontrado.",
+                        self._t("orbital_unavailable"),
+                        self._t("no_valid_cache", detail=detail),
                     )
         except queue.Empty:
             pass
         self.root.after(100, self._poll_orbital_results)
 
-    def open_station(self) -> None:
-        StationDialog(self.root, self.station, self._save_station)
-
-    def _save_station(self, station: Station) -> None:
-        self.station = station
-        self._live_propagators.clear()
-        self.store.save_station(station)
+    def _apply_language(self) -> None:
+        self.setup_button.configure(text=self._t("setup"))
+        self.update_button.configure(text=self._t("update"))
+        self.window_caption.configure(text=self._t("window"))
+        self._refresh_sound_button()
+        self.timeline.set_language(self.language)
         self._refresh_labels()
-        if self.satellites:
-            self.calculate()
 
     def _window_changed(self, _event: tk.Event | None = None) -> None:
         try:
@@ -804,13 +902,18 @@ class MissionPassApp:
         ).grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 9))
 
         rows = (
-            ("CONT.", pass_countdown_text(pass_window, datetime.now(UTC))),
+            (
+                self._t("countdown"),
+                pass_countdown_text(
+                    pass_window, datetime.now(UTC), self.language
+                ),
+            ),
             (
                 "AOS",
                 f"{aos:%H:%M:%S}   AZ {pass_window.aos_azimuth_deg:.0f}°",
             ),
             (
-                "MÁX",
+                self._t("maximum"),
                 f"{maximum:%H:%M:%S}   EL {pass_window.max_elevation_deg:.1f}°   "
                 f"AZ {pass_window.max_azimuth_deg:.0f}°",
             ),
@@ -820,7 +923,7 @@ class MissionPassApp:
             ),
             (
                 "DIST",
-                f"{pass_window.min_range_km:.0f} km no ponto de máxima",
+                self._t("range_at_max", value=pass_window.min_range_km),
             ),
         )
         for row, (label, value) in enumerate(rows, start=2):
@@ -841,7 +944,7 @@ class MissionPassApp:
                 font=("Consolas", 9, "bold"),
             )
             value_label.grid(row=row, column=1, sticky="w", pady=2)
-            if label == "CONT.":
+            if row == 2:
                 value_label.configure(fg="#7be3aa")
                 self._pass_countdown_label = value_label
 
@@ -928,7 +1031,9 @@ class MissionPassApp:
             return
         try:
             self._pass_countdown_label.configure(
-                text=pass_countdown_text(self._selected_pass, now.astimezone(UTC))
+                text=pass_countdown_text(
+                    self._selected_pass, now.astimezone(UTC), self.language
+                )
             )
         except tk.TclError:
             self._close_pass_popup()
@@ -977,5 +1082,10 @@ def _enable_windows_dpi_awareness() -> None:
 def run() -> None:
     _enable_windows_dpi_awareness()
     root = tk.Tk()
+    try:
+        root.iconbitmap(default=str(bundled_asset("assets/mission-control-timeline.ico")))
+    except tk.TclError:
+        # Source runs on platforms without Windows ICO support remain usable.
+        pass
     MissionPassApp(root)
     root.mainloop()

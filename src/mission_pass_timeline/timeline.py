@@ -5,6 +5,7 @@ import tkinter as tk
 from collections.abc import Callable
 from datetime import datetime, timedelta
 
+from .i18n import translate
 from .models import PassWindow, Satellite
 
 PassAnchor = tuple[int, int, int, int]
@@ -75,9 +76,11 @@ class TimelineView(tk.Frame):
         self,
         parent: tk.Misc,
         on_pass_selected: PassSelectionHandler | None = None,
+        language: str = "en",
     ):
         super().__init__(parent, bg=self.BACKGROUND)
         self.on_pass_selected = on_pass_selected
+        self.language = language
         self.satellites: list[Satellite] = []
         self.passes: dict[int, list[PassWindow]] = {}
         self.window_start_local: datetime | None = None
@@ -114,6 +117,10 @@ class TimelineView(tk.Frame):
         self.body.bind("<Button-4>", lambda _event: self.body.yview_scroll(-1, "units"))
         self.body.bind("<Button-5>", lambda _event: self.body.yview_scroll(1, "units"))
         self.bind("<Configure>", lambda _event: self.render())
+
+    def set_language(self, language: str) -> None:
+        self.language = language
+        self.render()
 
     def set_data(
         self,
@@ -201,7 +208,7 @@ class TimelineView(tk.Frame):
         self.header.create_text(
             16,
             35,
-            text="SATÉLITE",
+            text=translate(self.language, "satellite"),
             anchor="w",
             fill=self.MUTED,
             font=("Segoe UI Semibold", 9),
@@ -388,7 +395,7 @@ class TimelineView(tk.Frame):
         self.header.create_text(
             16,
             35,
-            text="LINHA DO TEMPO",
+            text=translate(self.language, "timeline"),
             anchor="w",
             fill=self.MUTED,
             font=("Segoe UI Semibold", 9),

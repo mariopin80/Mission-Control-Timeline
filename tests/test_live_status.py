@@ -33,12 +33,12 @@ class LiveStatusTests(unittest.TestCase):
             500.0,
         )
 
-    def test_window_keeps_only_thirty_minutes_of_history(self):
+    def test_window_keeps_only_fifteen_minutes_of_history(self):
         now = datetime(2026, 7, 17, 15, 30, tzinfo=timezone.utc)
         start, end = moving_window_bounds(now, 6)
-        self.assertEqual(now - start, timedelta(minutes=30))
+        self.assertEqual(now - start, timedelta(minutes=15))
         self.assertEqual(end - start, timedelta(hours=6))
-        self.assertEqual(end - now, timedelta(hours=5, minutes=30))
+        self.assertEqual(end - now, timedelta(hours=5, minutes=45))
 
     def test_los_countdown_formats_minutes_and_hours(self):
         self.assertEqual(format_countdown(timedelta(minutes=5, seconds=31.2)), "05:32")
@@ -51,15 +51,15 @@ class LiveStatusTests(unittest.TestCase):
 
     def test_pass_countdown_targets_aos_before_pass(self):
         now = datetime(2026, 7, 17, 14, 58, tzinfo=timezone.utc)
-        self.assertEqual(pass_countdown_text(self.pass_window(), now), "AOS EM 02:00")
+        self.assertEqual(pass_countdown_text(self.pass_window(), now), "AOS IN 02:00")
 
     def test_pass_countdown_targets_los_during_pass(self):
         now = datetime(2026, 7, 17, 15, 6, tzinfo=timezone.utc)
-        self.assertEqual(pass_countdown_text(self.pass_window(), now), "LOS EM 04:00")
+        self.assertEqual(pass_countdown_text(self.pass_window(), now), "LOS IN 04:00")
 
     def test_pass_countdown_reports_elapsed_time_after_los(self):
         now = datetime(2026, 7, 17, 15, 11, tzinfo=timezone.utc)
-        self.assertEqual(pass_countdown_text(self.pass_window(), now), "LOS HÁ 01:00")
+        self.assertEqual(pass_countdown_text(self.pass_window(), now), "LOS 01:00 AGO")
 
     def test_pass_countdown_requires_aware_time(self):
         with self.assertRaises(ValueError):

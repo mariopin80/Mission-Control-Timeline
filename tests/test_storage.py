@@ -52,6 +52,21 @@ class SettingsStoreTests(unittest.TestCase):
             )
             self.assertTrue(store.load_sound_enabled())
 
+    def test_language_defaults_to_english_and_persists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = SettingsStore(Path(directory))
+            self.assertEqual(store.load_language(), "en")
+            store.save_language("pt")
+            self.assertEqual(SettingsStore(Path(directory)).load_language(), "pt")
+
+    def test_invalid_language_falls_back_to_english(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = SettingsStore(Path(directory))
+            store.config_path.write_text(
+                json.dumps({"language": "xx"}), encoding="utf-8"
+            )
+            self.assertEqual(store.load_language(), "en")
+
     def test_catalog_list_and_orbital_cache_are_separate_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

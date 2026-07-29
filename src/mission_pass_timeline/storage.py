@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
 
+from .i18n import DEFAULT_LANGUAGE, LANGUAGES
 from .models import Station
 
 
@@ -14,7 +16,13 @@ def application_data_dir() -> Path:
         root = Path(os.environ.get("LOCALAPPDATA", Path.home()))
     else:
         root = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-    path = root / "MissionPassTimeline"
+    path = root / "MissionControlTimeline"
+    legacy_path = root / "MissionPassTimeline"
+    if not path.exists() and legacy_path.exists():
+        try:
+            shutil.copytree(legacy_path, path)
+        except OSError:
+            pass
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -31,6 +39,7 @@ class SettingsStore:
     VALID_TIMELINE_HOURS = (3, 6, 8, 12, 24)
     DEFAULT_TIMELINE_HOURS = 6
     DEFAULT_SOUND_ENABLED = True
+    DEFAULT_LANGUAGE = DEFAULT_LANGUAGE
 
     def __init__(
         self,
@@ -118,6 +127,17 @@ class SettingsStore:
             raise TypeError("O estado do som deve ser verdadeiro ou falso.")
         document = self._load_document()
         document["sound_enabled"] = enabled
+        self._save_document(document)
+
+    def load_language(self) -> str:
+        value = self._load_document().get("language", self.DEFAULT_LANGUAGE)
+        return value if isinstance(value, str) and value in LANGUAGES else self.DEFAULT_LANGUAGE
+
+    def save_language(self, language: str) -> None:
+        if language not in LANGUAGES:
+            raise ValueError(f"Unsupported language: {language}")
+        document = self._load_document()
+        document["language"] = language
         self._save_document(document)
 
     def load_catalog_text(self) -> str | None:

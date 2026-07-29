@@ -27,6 +27,8 @@ echo Gerando distribuicao em pasta...
     --name MissionControlTimeline ^
     --paths src ^
     --collect-all sgp4 ^
+    --add-data "assets\mission-control-timeline.ico;assets" ^
+    --icon assets\mission-control-timeline.ico ^
     --version-file packaging\windows_version_info.txt ^
     src\main.py
 if errorlevel 1 goto :error
@@ -46,7 +48,7 @@ if defined ISCC (
     if errorlevel 1 goto :error
     echo.
     echo Instalador concluido:
-    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.7.1.exe
+    echo %CD%\dist-installer\MissionControlTimeline_Setup_0.8.0.exe
 ) else (
     echo.
     echo Inno Setup 6 nao encontrado. A pasta do aplicativo foi gerada normalmente.

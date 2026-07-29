@@ -1,10 +1,10 @@
-# Registro de verificação — v0.7.1
+# Registro de verificação — v0.8.0
 
 Data: 24/07/2026
 
 ## Verificações automatizadas
 
-O conjunto de 52 testes cobre:
+O conjunto de 54 testes cobre:
 
 - TLE nominal com duas linhas;
 - TLE nominal com nome e três linhas;
@@ -19,7 +19,7 @@ O conjunto de 52 testes cobre:
 - espaçamento adaptativo da grade para as cinco janelas;
 - alinhamento das marcações com o relógio local;
 - exigência de instantes com fuso horário na linha do tempo;
-- posicionamento do instante atual após 30 minutos de histórico;
+- posicionamento do instante atual após 15 minutos de histórico;
 - preservação da duração total selecionada;
 - formatação e limite inferior da contagem regressiva para LOS;
 - posicionamento do cartão à direita da passagem quando há espaço;
@@ -50,14 +50,16 @@ O conjunto de 52 testes cobre:
 - reinicialização segura dos alertas para a passagem seguinte;
 - som habilitado por padrão e persistência da opção de silenciamento;
 - recuperação segura para o padrão ativo quando a configuração é inválida.
+- idioma inglês por padrão e persistência da seleção;
+- recuperação segura para inglês quando o idioma salvo é inválido;
 - aceitação de vírgulas, ponto e vírgula, espaços e linhas no editor NORAD;
 - rejeição de duplicatas, nomes e entrada vazia no editor;
 - migração preservativa do cache orbital legado para o AppData.
 
-Resultado: **52/52 aprovados**.
+Resultado: **54/54 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
-Python 3.10. A suíte da v0.7.1 foi executada em **Python 3.12.13**. A base
+Python 3.10. A suíte da v0.8.0 foi executada em **Python 3.12.13**. A base
 anterior também havia sido validada em **Python 3.10.20**, e as novas
 construções permanecem compatíveis com a versão mínima. A dependência de
 `datetime.UTC`, introduzida somente no Python 3.11, continua ausente.
