@@ -1,4 +1,4 @@
-# Registro de verificação — v0.7.0
+# Registro de verificação — v0.7.1
 
 Data: 24/07/2026
 
@@ -57,7 +57,7 @@ O conjunto de 52 testes cobre:
 Resultado: **52/52 aprovados**.
 
 Foi realizada uma verificação estática de compatibilidade com a gramática do
-Python 3.10. A suíte da v0.7.0 foi executada em **Python 3.12.13**. A base
+Python 3.10. A suíte da v0.7.1 foi executada em **Python 3.12.13**. A base
 anterior também havia sido validada em **Python 3.10.20**, e as novas
 construções permanecem compatíveis com a versão mínima. A dependência de
 `datetime.UTC`, introduzida somente no Python 3.11, continua ausente.

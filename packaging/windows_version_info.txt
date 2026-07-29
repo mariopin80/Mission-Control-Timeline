@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(0, 7, 0, 0),
-    prodvers=(0, 7, 0, 0),
+    filevers=(0, 7, 1, 0),
+    prodvers=(0, 7, 1, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -16,12 +16,12 @@ VSVersionInfo(
         [
           StringStruct(u'CompanyName', u'Mario Pin - PU2PTU'),
           StringStruct(u'FileDescription', u'Mission Control Timeline'),
-          StringStruct(u'FileVersion', u'0.7.0'),
+          StringStruct(u'FileVersion', u'0.7.1'),
           StringStruct(u'InternalName', u'MissionControlTimeline'),
           StringStruct(u'LegalCopyright', u'Copyright © 2026 Mario Pin - PU2PTU'),
           StringStruct(u'OriginalFilename', u'MissionControlTimeline.exe'),
           StringStruct(u'ProductName', u'Mission Control Timeline'),
-          StringStruct(u'ProductVersion', u'0.7.0')
+          StringStruct(u'ProductVersion', u'0.7.1')
         ]
       )
     ]),

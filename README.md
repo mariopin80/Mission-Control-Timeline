@@ -4,7 +4,7 @@ Aplicativo desktop para Windows que calcula e exibe, em uma linha do tempo
 móvel configurável, os períodos em que os satélites de uma lista de números
 NORAD estão acima da máscara de elevação de uma estação terrena.
 
-## Versão 0.7.0
+## Versão 0.7.1
 
 - janela móvel selecionável de 3, 6, 8, 12 ou 24 horas;
 - marcador vermelho do horário atual após apenas 30 minutos de histórico;
@@ -32,6 +32,13 @@ NORAD estão acima da máscara de elevação de uma estação terrena.
 - fechamento automático do cartão ao clicar fora de uma passagem;
 - aviso visual de dados orbitais antigos;
 - detalhes da passagem ao clicar em uma faixa.
+
+### Correção da versão 0.7.1
+
+- rodapé do editor NORAD fixado em uma linha própria do layout;
+- botões **Cancelar** e **Salvar lista** permanecem visíveis com escala de tela
+  elevada no Windows;
+- altura inicial e mínima da janela ajustadas.
 
 ### Alterações da versão 0.7.0
 
@@ -117,7 +124,7 @@ abertura.
 Se o **Inno Setup 6** estiver instalado, o mesmo script também criará:
 
 ```text
-dist-installer\MissionControlTimeline_Setup_0.7.0.exe
+dist-installer\MissionControlTimeline_Setup_0.7.1.exe
 ```
 
 O instalador é por usuário, não solicita privilégios administrativos e cria

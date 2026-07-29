@@ -17,8 +17,8 @@ class CatalogListDialog(tk.Toplevel):
     ):
         super().__init__(parent)
         self.title("Lista de satélites — números NORAD")
-        self.geometry("650x410")
-        self.minsize(520, 340)
+        self.geometry("650x460")
+        self.minsize(520, 400)
         self.transient(parent)
         self.grab_set()
         self.configure(bg="#111820")
@@ -26,11 +26,13 @@ class CatalogListDialog(tk.Toplevel):
 
         content = ttk.Frame(self, padding=22)
         content.pack(fill="both", expand=True)
+        content.columnconfigure(0, weight=1)
+        content.rowconfigure(2, weight=1)
         ttk.Label(
             content,
             text="SATÉLITES RASTREADOS",
             style="Title.TLabel",
-        ).pack(anchor="w")
+        ).grid(row=0, column=0, sticky="w")
         ttk.Label(
             content,
             text=(
@@ -40,7 +42,7 @@ class CatalogListDialog(tk.Toplevel):
             style="Hint.TLabel",
             wraplength=590,
             justify="left",
-        ).pack(anchor="w", pady=(5, 14))
+        ).grid(row=1, column=0, sticky="ew", pady=(5, 14))
 
         editor_frame = tk.Frame(
             content,
@@ -48,7 +50,7 @@ class CatalogListDialog(tk.Toplevel):
             highlightbackground="#29495b",
             highlightthickness=1,
         )
-        editor_frame.pack(fill="both", expand=True)
+        editor_frame.grid(row=2, column=0, sticky="nsew")
         self.editor = tk.Text(
             editor_frame,
             wrap="word",
@@ -75,7 +77,7 @@ class CatalogListDialog(tk.Toplevel):
         self.editor.edit_modified(False)
 
         footer = ttk.Frame(content)
-        footer.pack(fill="x", pady=(13, 0))
+        footer.grid(row=3, column=0, sticky="ew", pady=(13, 0))
         self.count_label = ttk.Label(footer, style="Hint.TLabel")
         self.count_label.pack(side="left")
         buttons = ttk.Frame(footer)

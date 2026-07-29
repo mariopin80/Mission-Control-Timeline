@@ -1,5 +1,5 @@
 #define MyAppName "Mission Control Timeline"
-#define MyAppVersion "0.7.0"
+#define MyAppVersion "0.7.1"
 #define MyAppPublisher "Mario Pin - PU2PTU"
 #define MyAppExeName "MissionControlTimeline.exe"
 
@@ -9,7 +9,7 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-VersionInfoVersion=0.7.0.0
+VersionInfoVersion=0.7.1.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Satellite pass timeline for ground stations
 VersionInfoProductName={#MyAppName}
@@ -18,7 +18,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\dist-installer
-OutputBaseFilename=MissionControlTimeline_Setup_0.7.0
+OutputBaseFilename=MissionControlTimeline_Setup_0.7.1
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
