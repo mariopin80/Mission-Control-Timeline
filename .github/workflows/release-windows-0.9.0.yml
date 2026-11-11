@@ -1,0 +1,103 @@
+name: Release Mission Control Timeline 0.9.0 for Windows
+
+on:
+  push:
+    branches: [packaging/windows-0.9.0]
+    paths: [.github/workflows/release-windows-0.9.0.yml]
+
+permissions:
+  contents: write
+
+concurrency: release-mission-control-timeline-0.9.0
+
+env:
+  RELEASE_TAG: v0.9.0
+  SOURCE_COMMIT: bc89559f611754a1b258c1248ee2e659f2322b85
+  INSTALLER: dist-installer/MissionControlTimeline_Setup_0.9.0.exe
+
+jobs:
+  build-and-release:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - name: Check out the release source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: bc89559f611754a1b258c1248ee2e659f2322b85
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+          architecture: x64
+
+      - name: Install Inno Setup 6.5.4
+        shell: pwsh
+        run: |
+          $setup = Join-Path $env:RUNNER_TEMP 'innosetup-6.5.4.exe'
+          $url = 'https://github.com/jrsoftware/issrc/releases/download/is-6_5_4/innosetup-6.5.4.exe'
+          Invoke-WebRequest -Uri $url -OutFile $setup
+          $expected = 'fa73bf47a4da250d185d07561c2bfda387e5e20db77e4570004cf6a133cc10b1'
+          if ((Get-FileHash $setup).Hash -ne $expected) { throw 'Inno Setup checksum mismatch' }
+          $process = Start-Process $setup -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Inno Setup installation failed ($($process.ExitCode))" }
+
+      - name: Build and test the installer
+        shell: pwsh
+        run: |
+          python -m venv .venv-build
+          cmd.exe /d /c 'build_windows.bat < NUL'
+          if ($LASTEXITCODE -ne 0) { throw 'Application build failed' }
+          .venv-build\Scripts\python.exe -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { throw 'Unit tests failed' }
+
+          # Retain the notices for the bundled CPython runtime and its components.
+          $runtime = .venv-build\Scripts\python.exe -c 'import sys; print(sys.base_prefix)'
+          Copy-Item (Join-Path $runtime 'LICENSE.txt') 'dist/MissionControlTimeline/PYTHON-LICENSE.txt'
+          $iscc = Join-Path ([Environment]::GetFolderPath('ProgramFilesX86')) 'Inno Setup 6/ISCC.exe'
+          & $iscc 'packaging/MissionControlTimeline.iss'
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $env:INSTALLER)) { throw 'Installer compilation failed' }
+
+          $installer = (Resolve-Path $env:INSTALLER).Path
+          $process = Start-Process $installer -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installation failed ($($process.ExitCode))" }
+
+          $installDir = Join-Path $env:LOCALAPPDATA 'Programs/Mission Control Timeline'
+          $app = Start-Process (Join-Path $installDir 'MissionControlTimeline.exe') -PassThru
+          try {
+            for ($i = 0; $i -lt 30; $i++) {
+              Start-Sleep -Seconds 1
+              $app.Refresh()
+              if ($app.HasExited) { throw "The installed application exited ($($app.ExitCode))" }
+              if ($app.MainWindowTitle -eq 'Mission Control Timeline 0.9.0') { break }
+            }
+            if ($app.MainWindowTitle -ne 'Mission Control Timeline 0.9.0') { throw 'Application window did not open' }
+          } finally {
+            if (!$app.HasExited) { Stop-Process -Id $app.Id }
+          }
+          $uninstall = Start-Process (Join-Path $installDir 'unins000.exe') -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0 -or (Test-Path (Join-Path $installDir 'MissionControlTimeline.exe'))) {
+            throw 'Uninstall smoke test failed'
+          }
+          Get-FileHash $installer
+
+      - name: Publish the verified installer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @'
+          ## Windows download
+
+          Download **MissionControlTimeline_Setup_0.9.0.exe** from Assets and run it on Windows 10 or 11 (x64). The installer includes the Python runtime and application libraries.
+
+          ## Download para Windows
+
+          Baixe **MissionControlTimeline_Setup_0.9.0.exe** em Assets e execute o arquivo no Windows 10 ou 11 (x64). O instalador já inclui o Python e as bibliotecas do aplicativo.
+
+          This release packages the existing 0.9.0 application. The installer is unsigned.
+
+          Este release disponibiliza o instalador do aplicativo 0.9.0. O instalador é distribuído sem assinatura digital.
+          '@
+          gh release create $env:RELEASE_TAG $env:INSTALLER --repo $env:GITHUB_REPOSITORY --target $env:SOURCE_COMMIT --title 'Mission Control Timeline v0.9.0 (Windows Installer)' --latest --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
